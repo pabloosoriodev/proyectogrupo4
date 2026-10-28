@@ -1,7 +1,16 @@
 # SPRINT 0 — Comparador de precios entre comercios/supermercados
 
 **Estado:** Aprobado (2026-10-27, humano)
-**Fuentes:** `TECH-DESIGN.md`, `adrs/` (0001–0012), `CLAUDE.md`
+**Fuentes:** `TECH-DESIGN.md`, `adrs/`
+
+> **Estado del ciclo al cierre del 2026-10-27 (LEAD):**
+> - TESTER (`[TESTER]` 3c32091): primera entrega para DoD 5–8, 11, 13, 14 (NO EJECUTADAS). Pendiente:
+>   nueva entrega con las aclaraciones 11–17 y 22 y los criterios 18–20.
+> - DEV: esqueleto y maquetado de `/buscar` en curso, sin entrega. Pendiente: `db/setup-local.sql`
+>   lo ejecuta el humano (aclaración 18) y luego `ENTREGA DEV`.
+> - Veredicto: no ejecutado (faltan las dos entregas finales). Commits del TESTER sin verificar rutas.
+> - Para retomar: abrir sesiones `/init-agent LEAD`, `/init-agent TESTER` y `/init-agent DEV` en esta
+>   carpeta, rama `chore/sprint0`; los encargos están en `encargos/`. (0001–0012), `CLAUDE.md`
 
 Objetivo: un esqueleto que funcione de punta a punta en local, sin lógica de negocio:
 **web (React) → API (`GET /v1/health`) → PostgreSQL**, con pruebas, lint y build funcionando.
