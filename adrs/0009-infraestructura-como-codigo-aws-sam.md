@@ -36,3 +36,12 @@ desarrollo local usa `sam local` para emular Lambda y API Gateway.
   CloudFormation "crudos", más largos de mantener.
 - El stack de producción no se despliega ni modifica sin validación explícita de un supervisor
   (`CLAUDE.md`).
+
+## Enmienda (2026-10-27)
+
+El equipo no usará Docker en local, por lo que `sam local` (que lo requiere) **no** se usa para
+desarrollo. `npm run dev:api` arranca un servidor HTTP de Node que traduce cada petición a un evento
+de API Gateway HTTP API (payload 2.0) y llama al mismo handler de la Lambda. SAM sigue siendo la
+herramienta de infraestructura para `sam build` y el despliegue. **Trade-off:** la emulación local
+es menos fiel que `sam local` (sin límites de memoria/tiempo ni runtime real de Lambda); las
+diferencias solo aparecen al desplegar.
