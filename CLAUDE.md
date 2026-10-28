@@ -69,13 +69,13 @@ Recomendar tecnología y metodología para realizar el scrapeo de paginas web de
 
 ## Propiedad de rutas
 
-> Propuesto en `SPRINT0.md` — **pendiente de aprobación humana**.
+> Aprobado en `SPRINT0.md` (2026-10-27, humano).
 
 | Rol | Rutas |
 |---|---|
-| TESTER | `tests/**` (unitarias e integración), `tests/fixtures/**`, `jest.config.js` (raíz) |
-| DEV | `api/**`, `scraper/**`, `shared/**`, `web/**`, `infra/**`, `db/**`, `package.json`, `package-lock.json`, `.eslintrc*`, `.prettierrc*`, `.env.example`, `.gitignore` |
-| Solo LEAD / humano | `AGENTS.md`, `CLAUDE.md`, `.claude/**`, `.agents/**`, `skills-lock.json`, `SPRINT0.md`, `openapi.yaml`, `PRD.md`, `TECH-DESIGN.md`, `adrs/**`, `historias-usuario/**`, `docs/**` |
+| TESTER | `tests/**` (unitarias e integración), `tests/fixtures/**`, `jest.config.js` (raíz), `informes/TESTER-*.md` |
+| DEV | `api/**`, `scraper/**`, `shared/**`, `web/**`, `infra/**`, `db/**`, `package.json`, `package-lock.json`, `.eslintrc*`, `.prettierrc*`, `.env.example`, `.gitignore`, `informes/DEV-*.md` |
+| Solo LEAD / humano | `AGENTS.md`, `CLAUDE.md`, `.claude/**`, `.agents/**`, `skills-lock.json`, `SPRINT0.md`, `openapi.yaml`, `PRD.md`, `TECH-DESIGN.md`, `adrs/**`, `historias-usuario/**`, `docs/**`, `encargos/**`, `informes/VEREDICTO-*.md` |
 
 Cada rol solo modifica sus rutas y hace commits únicamente de ellas, con el prefijo `[TESTER]` o
 `[DEV]` en el mensaje.

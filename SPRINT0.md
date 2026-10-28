@@ -1,6 +1,6 @@
 # SPRINT 0 — Comparador de precios entre comercios/supermercados
 
-**Estado:** Pendiente de aprobación
+**Estado:** Aprobado (2026-10-27, humano)
 **Fuentes:** `TECH-DESIGN.md`, `adrs/` (0001–0012), `CLAUDE.md`
 
 Objetivo: un esqueleto que funcione de punta a punta en local, sin lógica de negocio:
@@ -39,9 +39,9 @@ Objetivo: un esqueleto que funcione de punta a punta en local, sin lógica de ne
 
 | Rol | Rutas |
 |---|---|
-| TESTER | `tests/**` (unitarias e integración), `tests/fixtures/**`, `jest.config.js` (raíz) |
-| DEV | `api/**`, `scraper/**`, `shared/**`, `web/**`, `infra/**`, `db/**`, `package.json`, `package-lock.json`, `.eslintrc*`, `.prettierrc*`, `.env.example`, `.gitignore` |
-| Solo LEAD / humano | `AGENTS.md`, `CLAUDE.md`, `.claude/**`, `.agents/**`, `skills-lock.json`, `SPRINT0.md`, `openapi.yaml`, `PRD.md`, `TECH-DESIGN.md`, `adrs/**`, `historias-usuario/**`, `docs/**` |
+| TESTER | `tests/**` (unitarias e integración), `tests/fixtures/**`, `jest.config.js` (raíz), `informes/TESTER-*.md` |
+| DEV | `api/**`, `scraper/**`, `shared/**`, `web/**`, `infra/**`, `db/**`, `package.json`, `package-lock.json`, `.eslintrc*`, `.prettierrc*`, `.env.example`, `.gitignore`, `informes/DEV-*.md` |
+| Solo LEAD / humano | `AGENTS.md`, `CLAUDE.md`, `.claude/**`, `.agents/**`, `skills-lock.json`, `SPRINT0.md`, `openapi.yaml`, `PRD.md`, `TECH-DESIGN.md`, `adrs/**`, `historias-usuario/**`, `docs/**`, `encargos/**`, `informes/VEREDICTO-*.md` |
 
 > Esta tabla también se copia en `CLAUDE.md` → `## Propiedad de rutas` (no existe `AGENTS.md`).
 > Las pruebas viven en `tests/` en la raíz (opción permitida por `CLAUDE.md`) para que TESTER y DEV
@@ -129,4 +129,5 @@ Resueltas (2026-10-27, humano):
 |---|---|---|
 | 2026-10-27 | Preguntas 1–6 y 9 resueltas; base local pasa de Docker a PostgreSQL 16 en Windows (DoD 2 y plan ajustados); sin `docker-compose.yml` | Humano |
 | 2026-10-27 | Preguntas 7, 8 y 10 resueltas: Jest lo configura el TESTER; sin Docker, API local con servidor Node (DoD 4 ajustado, enmienda ADR-0009); herramientas instaladas | Humano |
-| 2026-10-27 | DoD ampliada con criterios 13–15 (contrato, SSL, alcance de infraestructura) | Pendiente |
+| 2026-10-27 | DoD ampliada con criterios 13–15 (contrato, SSL, alcance de infraestructura) | Humano |
+| 2026-10-27 | `SPRINT0.md` aprobado; rutas de informes (`informes/`) y encargos (`encargos/`) añadidas al mapa | Humano |
