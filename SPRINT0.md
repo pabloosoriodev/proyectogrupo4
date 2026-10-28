@@ -68,7 +68,10 @@ Objetivo: un esqueleto que funcione de punta a punta en local, sin lógica de ne
 | 14 | La conexión acepta SSL por configuración (ADR-0003, parte Sprint 0) | prueba unitaria: con `DB_SSL=true` el módulo de conexión pide SSL al cliente PostgreSQL; con `DB_SSL=false` no |
 | 15 | La infraestructura se limita al esqueleto (ADR-0001, parte Sprint 0) | revisión: `infra/template.yaml` declara solo la Lambda de salud y su HTTP API; no hay RDS, SQS, DLQ ni Scheduler; `scraper/` existe como workspace vacío |
 | 16 | Respeta los ADRs transversales | revisión: monorepo con workspaces `api`, `scraper`, `shared`, `web` (ADR-0012); `infra/template.yaml` en SAM (ADR-0009); web en React + Vite (ADR-0008); cliente PostgreSQL (ADR-0002); ruta bajo `/v1` (ADR-0007) — citando archivo:línea |
-| 17 | Cero lógica de negocio | revisión humana: no hay tablas, endpoints, adaptadores ni pantallas de productos, precios, comercios o categorías |
+| 17 | Cero lógica de negocio | revisión humana: no hay tablas, endpoints, adaptadores ni pantallas de productos, precios, comercios o categorías, **salvo** el maquetado estático de los criterios 18–20 |
+| 18 | Existe el maquetado estático de "Buscar productos" (HU-03, estado con resultados) | prueba: la ruta `/buscar` de la web muestra un campo de búsqueda con el valor inicial `leche`, un botón con el texto `Buscar`, un selector rotulado `Marca` y otro rotulado `Categoría`, y el texto `12 productos encontrados para «leche»` |
+| 19 | Las tarjetas de resultado muestran los datos de HU-03 | prueba: en `/buscar` hay al menos 3 tarjetas; cada una muestra nombre del producto, marca, tamaño, un precio con el formato `Desde $<número con 2 decimales>`, el texto `Disponible en <N> comercios` y un botón `Comparar precios` |
+| 20 | El maquetado es estático | prueba: cargar `/buscar` no hace ninguna petición a `/v1/productos` ni a otra ruta de la API distinta de `/v1/health`; revisión: los datos de ejemplo viven en un único archivo de datos de ejemplo dentro de `web/` |
 
 ## 6. Plan
 
@@ -85,18 +88,26 @@ Objetivo: un esqueleto que funcione de punta a punta en local, sin lógica de ne
   Scheduler.
 - `db/migrations/`: herramienta de migraciones configurada y una migración base vacía.
 - `web/`: SPA React + Vite con una página `/` que muestra la salud de la API.
+- `web/`: maquetado estático de la página `/buscar` (HU-03, solo estado con resultados) con datos
+  de ejemplo fijos, según los criterios 18–20. Referencia visual: pantalla de Stitch
+  "HU-03: Buscar productos - Resultados («leche») (Alcance alineado)" del proyecto
+  "Comparador de precios — Vistas por HU". Sin login, moneda `$`, sin filtros de país/distancia,
+  sin historial, stock, promociones ni carrito. Los filtros y el botón `Comparar precios` son solo
+  visuales (no filtran ni navegan).
 - Configuración de ESLint + Prettier.
 
 ### TESTER crea
 - `jest.config.js` en la raíz (proyectos unit/integración, entorno jsdom para la web).
-- Pruebas para los criterios 5, 6, 7, 8, 11, 13 y 14 de la sección 5, escritas contra la DoD y
+- Pruebas para los criterios 5, 6, 7, 8, 11, 13, 14, 18, 19 y 20 de la sección 5, escritas contra la DoD y
   `openapi.yaml`, no contra el código del DEV.
 
 ### NO se crea
 - Nada de los ADRs de la sección 2: adaptadores de scraping, agrupación, extensiones `pg_trgm` /
   `unaccent`, búsqueda.
 - Ninguna funcionalidad de las HUs: ni tablas de negocio, ni endpoints de productos, precios o
-  categorías, ni pantallas de búsqueda o comparación.
+  categorías, ni pantalla de comparación (HU-04). De la búsqueda (HU-03) solo existe el maquetado
+  estático de los criterios 18–20: sin búsqueda real, sin estados "sin resultados" ni
+  "validación", sin llamada a la API.
 - Pipeline de scraping (Scheduler, orquestador, SQS, DLQ), salvo que la pregunta 4 diga lo contrario.
 - Ningún despliegue a AWS (ni `sam deploy`, ni RDS, ni Parameter Store real).
 
@@ -151,3 +162,4 @@ Aclaraciones durante el ciclo (2026-10-27, humano) — valen igual para TESTER y
 | 2026-10-27 | DoD ampliada con criterios 13–15 (contrato, SSL, alcance de infraestructura) | Humano |
 | 2026-10-27 | `SPRINT0.md` aprobado; rutas de informes (`informes/`) y encargos (`encargos/`) añadidas al mapa | Humano |
 | 2026-10-27 | Aclaraciones 11–17 (entorno, web, módulos, CORS, `requestId`, scripts y dependencias de pruebas) a partir de las dudas del TESTER | Humano |
+| 2026-10-27 | Alcance ampliado: maquetado estático de "Buscar productos" (HU-03, solo estado con resultados) en `/buscar`; DoD 17 con excepción y nuevos criterios 18–20; TESTER debe cubrirlos | Humano |
