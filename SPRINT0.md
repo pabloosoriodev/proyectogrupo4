@@ -63,7 +63,7 @@ Objetivo: un esqueleto que funcione de punta a punta en local, sin lógica de ne
 | 9 | Lint pasa | comando: `npm run lint` (ESLint + Prettier) termina con código 0 |
 | 10 | El build funciona | comando: `npm run build` ejecuta `sam build` sobre `infra/template.yaml` y compila la web sin errores |
 | 11 | Logs estructurados | prueba: cada invocación de `GET /v1/health` escribe una línea JSON con `level`, `message` y `requestId` |
-| 12 | Sin valores fijos en el código | revisión: conexión, puertos y URL de la API se leen de variables de entorno (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSL`, `DB_CONNECT_TIMEOUT_MS`, `VITE_API_URL`) documentadas en `.env.example`; búsqueda de credenciales/URLs literales en `api/`, `shared/`, `web/`, `infra/` sin resultados |
+| 12 | Sin valores fijos en el código | revisión: conexión, puertos y URL de la API se leen de variables de entorno (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSL`, `DB_CONNECT_TIMEOUT_MS`, `CORS_ALLOWED_ORIGIN`, `VITE_API_URL`) documentadas en `.env.example`; búsqueda de credenciales/URLs literales en `api/`, `shared/`, `web/`, `infra/` sin resultados |
 | 13 | Cumple el contrato de la API (ADR-0007, parte Sprint 0) | prueba: las respuestas 200 y 503 de `GET /v1/health` validan contra el esquema de `openapi.yaml` |
 | 14 | La conexión acepta SSL por configuración (ADR-0003, parte Sprint 0) | prueba unitaria: con `DB_SSL=true` el módulo de conexión pide SSL al cliente PostgreSQL; con `DB_SSL=false` no |
 | 15 | La infraestructura se limita al esqueleto (ADR-0001, parte Sprint 0) | revisión: `infra/template.yaml` declara solo la Lambda de salud y su HTTP API; no hay RDS, SQS, DLQ ni Scheduler; `scraper/` existe como workspace vacío |
@@ -123,6 +123,25 @@ Resueltas (2026-10-27, humano):
     handler de la Lambda. `sam local` no se usa; SAM queda para `sam build` y el despliegue.
     Enmienda registrada en ADR-0009.
 
+Aclaraciones durante el ciclo (2026-10-27, humano) — valen igual para TESTER y DEV:
+
+11. **Variables de entorno:** las variables del proceso tienen prioridad sobre `.env` (comportamiento
+    por defecto de `dotenv`, sin `override`).
+12. **Web:** entrada `web/index.html`, código en JS/JSX (sin TypeScript) y URL de la API leída de
+    `import.meta.env.VITE_API_URL`.
+13. **Módulos:** el `package.json` raíz y los workspaces `api/`, `shared/` y `scraper/` son CommonJS
+    (sin `"type": "module"`); la web usa ES Modules dentro de Vite.
+14. **CORS:** la API responde con la cabecera `Access-Control-Allow-Origin` igual al valor de la
+    variable `CORS_ALLOWED_ORIGIN` (en local `http://localhost:5173`); no se usa proxy de Vite.
+15. **`requestId`:** distinto en cada invocación de la API.
+16. **Scripts de pruebas (fijados por el LEAD):** `npm run test` ejecuta
+    `jest --selectProjects unit web` y `npm run test:integration` ejecuta
+    `jest --selectProjects integration`. Los nombres de proyecto `unit`, `web` e `integration` son
+    parte del contrato.
+17. **Dependencias de desarrollo para pruebas (las instala el DEV):** `jest`,
+    `jest-environment-jsdom`, `babel-jest`, `@babel/preset-env`, `@babel/preset-react`,
+    `babel-plugin-transform-vite-meta-env`, `ajv` y `yaml`.
+
 ## 8. Cambios durante el ciclo
 
 | Fecha | Cambio | Aprobado por |
@@ -131,3 +150,4 @@ Resueltas (2026-10-27, humano):
 | 2026-10-27 | Preguntas 7, 8 y 10 resueltas: Jest lo configura el TESTER; sin Docker, API local con servidor Node (DoD 4 ajustado, enmienda ADR-0009); herramientas instaladas | Humano |
 | 2026-10-27 | DoD ampliada con criterios 13–15 (contrato, SSL, alcance de infraestructura) | Humano |
 | 2026-10-27 | `SPRINT0.md` aprobado; rutas de informes (`informes/`) y encargos (`encargos/`) añadidas al mapa | Humano |
+| 2026-10-27 | Aclaraciones 11–17 (entorno, web, módulos, CORS, `requestId`, scripts y dependencias de pruebas) a partir de las dudas del TESTER | Humano |
