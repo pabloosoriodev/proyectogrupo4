@@ -152,6 +152,18 @@ Aclaraciones durante el ciclo (2026-10-27, humano) — valen igual para TESTER y
 17. **Dependencias de desarrollo para pruebas (las instala el DEV):** `jest`,
     `jest-environment-jsdom`, `babel-jest`, `@babel/preset-env`, `@babel/preset-react`,
     `babel-plugin-transform-vite-meta-env`, `ajv` y `yaml`.
+18. **Base local — creación:** el DEV deja `db/setup-local.sql`, que crea la base `comparador_dev`
+    y el usuario `comparador_app` (dueño de esa base). La contraseña de ese usuario **no** va escrita
+    en el script: se recibe como variable de `psql` (`-v app_password=...`). El humano lo ejecuta
+    con `psql` como superusuario `postgres` (solo él conoce esa contraseña).
+19. **`.env` local:** lo crea el DEV a partir de `.env.example` con `DB_NAME=comparador_dev`,
+    `DB_USER=comparador_app` y una contraseña de desarrollo solo local, que el humano usa al
+    ejecutar el script de la aclaración 18. `.env` está en `.gitignore` y **nunca** se sube;
+    `.env.example` no lleva secretos.
+20. **Uso de la base local:** el DEV puede conectarse, migrar y correr la API contra el PostgreSQL 16
+    local para verificar su trabajo. Nadie detiene el servicio `postgresql-x64-16`: el caso "base no
+    disponible" (criterio 6) se reproduce con variables de entorno que apuntan a un puerto sin base
+    (por ejemplo `DB_PORT=5999`), que tienen prioridad sobre `.env` (aclaración 11).
 
 ## 8. Cambios durante el ciclo
 
@@ -163,3 +175,4 @@ Aclaraciones durante el ciclo (2026-10-27, humano) — valen igual para TESTER y
 | 2026-10-27 | `SPRINT0.md` aprobado; rutas de informes (`informes/`) y encargos (`encargos/`) añadidas al mapa | Humano |
 | 2026-10-27 | Aclaraciones 11–17 (entorno, web, módulos, CORS, `requestId`, scripts y dependencias de pruebas) a partir de las dudas del TESTER | Humano |
 | 2026-10-27 | Alcance ampliado: maquetado estático de "Buscar productos" (HU-03, solo estado con resultados) en `/buscar`; DoD 17 con excepción y nuevos criterios 18–20; TESTER debe cubrirlos | Humano |
+| 2026-10-27 | Aclaraciones 18–20 (creación de la base local, `.env` local y uso de la base) a partir de las dudas del DEV | Humano |
