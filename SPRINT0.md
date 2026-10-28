@@ -1,0 +1,130 @@
+# SPRINT 0 — Comparador de precios entre comercios/supermercados
+
+**Estado:** Pendiente de aprobación
+**Fuentes:** `TECH-DESIGN.md`, `adrs/` (0001–0012), `CLAUDE.md`
+
+Objetivo: un esqueleto que funcione de punta a punta en local, sin lógica de negocio:
+**web (React) → API (`GET /v1/health`) → PostgreSQL**, con pruebas, lint y build funcionando.
+
+---
+
+## 1. ADRs que aplican (transversales)
+
+| ADR | Decisión | Por qué aplica ahora |
+|---|---|---|
+| ADR-0002 | PostgreSQL en Amazon RDS | La API necesita conectarse a PostgreSQL para existir; en local se usa un PostgreSQL equivalente (ver pregunta 2). |
+| ADR-0008 | Frontend SPA React + Vite | Es la cara del esqueleto: debe compilar, arrancar y llamar a la API. |
+| ADR-0009 | Infraestructura como código con AWS SAM | `npm run dev` y `npm run build` se apoyan en `sam local` / `sam build`. |
+| ADR-0012 | Monorepo con npm workspaces | Define la estructura de carpetas y el mapa de propiedad de rutas. |
+
+## 2. ADRs que NO aplican todavía (de historia)
+
+| ADR | Decisión | Aplica cuando llegue |
+|---|---|---|
+| ADR-0004 | Scraping híbrido con adaptador por comercio | HU-01 (KAN-1) |
+| ADR-0005 | Agrupación con claves duras + `pg_trgm` | HU-02 (KAN-2) |
+| ADR-0006 | Búsqueda con `unaccent` + `pg_trgm` | HU-03 (KAN-3) |
+
+## 3. A discutir (mixtos)
+
+| ADR | Qué parte aplica ahora | Qué parte espera a su HU | Pregunta |
+|---|---|---|---|
+| ADR-0001 | Componentes web, API y base de datos, y la carpeta `scraper/` vacía como workspace | Scheduler, orquestador, colas SQS, DLQ y Lambdas scraper | ¿El pipeline se difiere entero a HU-01? (pregunta 4) |
+| ADR-0003 | La conexión a la base acepta SSL por configuración (`DB_SSL`) | Usuarios separados por componente, acceso público endurecido de RDS | ¿Correcto que la red/RDS en AWS no se toca en el Sprint 0? |
+| ADR-0007 | Prefijo `/v1` y el endpoint de salud `GET /v1/health` en `openapi.yaml` | `/v1/productos`, `/v1/productos/{id}/precios`, `/v1/categorias` | ¿Quién escribe `openapi.yaml`? (pregunta 6) |
+| ADR-0010 | Toda la configuración entra por variables de entorno leídas en un único módulo; `.env.example` las documenta | Lectura desde Parameter Store en AWS; parámetros de negocio (umbrales, comercios) | Ninguna, salvo confirmar que en el Sprint 0 no hay despliegue. |
+| ADR-0011 | Logs JSON y `try/catch` en el handler de salud | Reintentos SQS, DLQ y retención de 14 días | Depende de la pregunta 4. |
+
+## 4. Propiedad de rutas
+
+| Rol | Rutas |
+|---|---|
+| TESTER | `tests/**` (unitarias e integración), `tests/fixtures/**`, `jest.config.js` (raíz) |
+| DEV | `api/**`, `scraper/**`, `shared/**`, `web/**`, `infra/**`, `db/**`, `package.json`, `package-lock.json`, `.eslintrc*`, `.prettierrc*`, `.env.example`, `.gitignore` |
+| Solo LEAD / humano | `AGENTS.md`, `CLAUDE.md`, `.claude/**`, `.agents/**`, `skills-lock.json`, `SPRINT0.md`, `openapi.yaml`, `PRD.md`, `TECH-DESIGN.md`, `adrs/**`, `historias-usuario/**`, `docs/**` |
+
+> Esta tabla también se copia en `CLAUDE.md` → `## Propiedad de rutas` (no existe `AGENTS.md`).
+> Las pruebas viven en `tests/` en la raíz (opción permitida por `CLAUDE.md`) para que TESTER y DEV
+> no compartan carpetas. `jest` se instala como dependencia en `package.json` (DEV); su configuración
+> es del TESTER (pregunta 7).
+
+## 5. Definition of Done — esqueleto
+
+| # | Criterio | Cómo se verifica |
+|---|---|---|
+| 1 | Las dependencias de todos los workspaces se instalan | comando: `npm install` en la raíz termina sin errores |
+| 2 | La base de datos local está disponible | comando: `npm run db:check` se conecta al PostgreSQL 16 local (servicio Windows `postgresql-x64-16`) con las variables de `.env` y termina con código 0 |
+| 3 | Las migraciones se ejecutan | comando: `npm run db:migrate` corre sin errores con una migración base vacía (sin tablas de negocio) |
+| 4 | La API arranca en local | comando: `npm run dev:api` deja la API escuchando en `http://localhost:3000` (`sam local start-api`) |
+| 5 | Responde en `GET /v1/health` con la base disponible | prueba de integración: HTTP 200 y cuerpo exacto `{ "status": "ok", "db": "ok" }` (ejecuta `SELECT 1`) |
+| 6 | Falla de forma segura sin base | prueba de integración: con la base detenida, `GET /v1/health` responde HTTP 503 y `{ "status": "degraded", "db": "error" }` en menos de `DB_CONNECT_TIMEOUT_MS` + 1 s, sin caerse |
+| 7 | La web arranca y muestra la salud de la API | comando: `npm run dev:web` sirve en `http://localhost:5173`; prueba: la página `/` muestra el texto `API: ok` cuando la API responde 200, y `API: no disponible` si no |
+| 8 | El runner de pruebas se ejecuta | comandos: `npm run test` (unitarias) y `npm run test:integration` (integración con la base local) terminan con código 0 |
+| 9 | Lint pasa | comando: `npm run lint` (ESLint + Prettier) termina con código 0 |
+| 10 | El build funciona | comando: `npm run build` ejecuta `sam build` sobre `infra/template.yaml` y compila la web sin errores |
+| 11 | Logs estructurados | prueba: cada invocación de `GET /v1/health` escribe una línea JSON con `level`, `message` y `requestId` |
+| 12 | Sin valores fijos en el código | revisión: conexión, puertos y URL de la API se leen de variables de entorno (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSL`, `DB_CONNECT_TIMEOUT_MS`, `VITE_API_URL`) documentadas en `.env.example`; búsqueda de credenciales/URLs literales en `api/`, `shared/`, `web/`, `infra/` sin resultados |
+| 13 | Cumple el contrato de la API (ADR-0007, parte Sprint 0) | prueba: las respuestas 200 y 503 de `GET /v1/health` validan contra el esquema de `openapi.yaml` |
+| 14 | La conexión acepta SSL por configuración (ADR-0003, parte Sprint 0) | prueba unitaria: con `DB_SSL=true` el módulo de conexión pide SSL al cliente PostgreSQL; con `DB_SSL=false` no |
+| 15 | La infraestructura se limita al esqueleto (ADR-0001, parte Sprint 0) | revisión: `infra/template.yaml` declara solo la Lambda de salud y su HTTP API; no hay RDS, SQS, DLQ ni Scheduler; `scraper/` existe como workspace vacío |
+| 16 | Respeta los ADRs transversales | revisión: monorepo con workspaces `api`, `scraper`, `shared`, `web` (ADR-0012); `infra/template.yaml` en SAM (ADR-0009); web en React + Vite (ADR-0008); cliente PostgreSQL (ADR-0002); ruta bajo `/v1` (ADR-0007) — citando archivo:línea |
+| 17 | Cero lógica de negocio | revisión humana: no hay tablas, endpoints, adaptadores ni pantallas de productos, precios, comercios o categorías |
+
+## 6. Plan
+
+### DEV crea
+- Monorepo con npm workspaces `api/`, `scraper/` (vacío), `shared/`, `web/`, más `infra/` y `db/`.
+- Scripts en el `package.json` raíz: `dev:api`, `dev:web`, `dev`, `db:check`, `db:migrate`,
+  `test`, `test:integration`, `lint`, `build`.
+- `.env.example` con todas las variables (la base local es el PostgreSQL 16 instalado en Windows).
+- Migraciones con `node-pg-migrate` y cliente `pg`; Node.js 22 (`nodejs22.x` en `template.yaml`).
+- `shared/`: módulo de configuración (lee variables de entorno) y logger JSON.
+- `api/`: un archivo con el handler de `GET /v1/health` (con `try/catch` y timeout de conexión).
+- `infra/template.yaml` (SAM) con la Lambda de salud y su ruta en una HTTP API. Sin RDS, SQS ni
+  Scheduler.
+- `db/migrations/`: herramienta de migraciones configurada y una migración base vacía.
+- `web/`: SPA React + Vite con una página `/` que muestra la salud de la API.
+- Configuración de ESLint + Prettier.
+
+### TESTER crea
+- `jest.config.js` en la raíz (proyectos unit/integración, entorno jsdom para la web).
+- Pruebas para los criterios 5, 6, 7, 8, 11, 13 y 14 de la sección 5, escritas contra la DoD y
+  `openapi.yaml`, no contra el código del DEV.
+
+### NO se crea
+- Nada de los ADRs de la sección 2: adaptadores de scraping, agrupación, extensiones `pg_trgm` /
+  `unaccent`, búsqueda.
+- Ninguna funcionalidad de las HUs: ni tablas de negocio, ni endpoints de productos, precios o
+  categorías, ni pantallas de búsqueda o comparación.
+- Pipeline de scraping (Scheduler, orquestador, SQS, DLQ), salvo que la pregunta 4 diga lo contrario.
+- Ningún despliegue a AWS (ni `sam deploy`, ni RDS, ni Parameter Store real).
+
+## 7. Preguntas abiertas para el humano
+
+Resueltas (2026-10-27, humano):
+
+1. **Repositorio Git:** `git init` y repositorio nuevo en GitHub creado con `gh repo create`; el
+   trabajo va en la rama `chore/sprint0` y el PR se abre contra `main`.
+2. **Base de datos local:** PostgreSQL 16 instalado en Windows (servicio `postgresql-x64-16`,
+   puerto por defecto 5432), sin Docker para la base. Ya instalado (16.15).
+3. **Migraciones y cliente SQL:** `node-pg-migrate` + `pg`.
+4. **Pipeline de scraping:** se difiere entero a HU-01.
+5. **Node.js:** 22 LTS (runtime `nodejs22.x` en Lambda).
+6. **`openapi.yaml`:** lo escribe el LEAD con solo `GET /v1/health` antes de invocar a TESTER y DEV.
+9. **Coordinación:** TESTER y DEV trabajan en sesiones separadas de Claude Code abiertas por el
+   humano; el LEAD redacta cada encargo y el humano trae de vuelta las `ENTREGA TESTER` / `ENTREGA DEV`.
+
+Pendientes:
+
+7. **`jest.config.js`:** propuesta: lo crea el TESTER y el DEV solo instala `jest` en
+   `package.json`. ¿De acuerdo?
+8. **Prerrequisitos locales:** `sam local start-api` necesita **Docker Desktop** (aunque la base ya
+   no lo use) y **AWS SAM CLI**; además faltan **Node.js 22** (hoy solo hay Node 26) y **`gh`
+   autenticado**. Verificar que estén instalados.
+
+## 8. Cambios durante el ciclo
+
+| Fecha | Cambio | Aprobado por |
+|---|---|---|
+| 2026-10-27 | Preguntas 1–6 y 9 resueltas; base local pasa de Docker a PostgreSQL 16 en Windows (DoD 2 y plan ajustados); sin `docker-compose.yml` | Humano |
+| 2026-10-27 | DoD ampliada con criterios 13–15 (contrato, SSL, alcance de infraestructura) | Pendiente |

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Comparador de precios — arquitectura de componentes en AWS",
+    "locale": "es",
+    "output": "docs/diagramas/architecture-componentes-20261015-223555/componentes.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "usuario", "type": "external", "label": "Consumidor", "sublabel": "navegador, sin login", "pos": [280, 40], "size": [140, 60] },
+    { "id": "s3", "type": "cloud", "label": "S3", "sublabel": "SPA React + Vite", "pos": [40, 170], "size": [140, 64] },
+    { "id": "cloudfront", "type": "cloud", "label": "CloudFront", "sublabel": "CDN de la web", "pos": [280, 170], "size": [140, 64] },
+    { "id": "apigw", "type": "cloud", "label": "API Gateway", "sublabel": "HTTP API /v1", "pos": [520, 170], "size": [140, 64] },
+    { "id": "lambdaApi", "type": "backend", "label": "Lambda API", "sublabel": "solo lectura", "pos": [760, 170], "size": [140, 64], "tag": "openapi.yaml" },
+    { "id": "rds", "type": "database", "label": "RDS PostgreSQL", "sublabel": "pg_trgm + unaccent", "pos": [760, 300], "size": [140, 64], "tag": "público · SSL" },
+    { "id": "scheduler", "type": "cloud", "label": "EventBridge", "sublabel": "Scheduler 1 vez/día", "pos": [40, 430], "size": [140, 64] },
+    { "id": "orquestador", "type": "backend", "label": "Lambda orquestador", "sublabel": "comercios activos", "pos": [280, 430], "size": [140, 64] },
+    { "id": "colas", "type": "messagebus", "label": "Colas SQS", "sublabel": "liviana · browser", "pos": [520, 430], "size": [140, 64] },
+    { "id": "scraper", "type": "backend", "label": "Lambdas scraper", "sublabel": "json/html · Playwright", "pos": [760, 430], "size": [140, 64], "tag": "adaptador x comercio" },
+    { "id": "webs", "type": "external", "label": "Webs comercios", "sublabel": "robots.txt + límite", "pos": [1000, 430], "size": [140, 64] },
+    { "id": "parametros", "type": "security", "label": "Parameter Store", "sublabel": "config + SecureString", "pos": [280, 560], "size": [140, 64] },
+    { "id": "dlq", "type": "messagebus", "label": "DLQ", "sublabel": "retiene 14 días", "pos": [520, 560], "size": [140, 64], "tag": "revisión manual" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "AWS (free tier) · stack SAM", "wraps": ["s3", "cloudfront", "apigw", "lambdaApi", "rds", "scheduler", "orquestador", "colas", "scraper", "parametros", "dlq"] }
+  ],
+  "connections": [
+    { "id": "usuarioWeb", "from": "usuario", "to": "cloudfront", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "usuarioApi", "from": "usuario", "to": "apigw", "label": "GET /v1", "variant": "emphasis", "fromSide": "right", "toSide": "top" },
+    { "id": "cdnOrigen", "from": "cloudfront", "to": "s3", "label": "SPA" },
+    { "id": "gwLambda", "from": "apigw", "to": "lambdaApi", "label": "invoca" },
+    { "id": "apiSql", "from": "lambdaApi", "to": "rds", "label": "SQL lectura" },
+    { "id": "disparo", "from": "scheduler", "to": "orquestador", "label": "diario" },
+    { "id": "encolar", "from": "orquestador", "to": "colas", "label": "por comercio", "variant": "dashed" },
+    { "id": "leerConfig", "from": "orquestador", "to": "parametros", "label": "config", "variant": "security" },
+    { "id": "consumir", "from": "colas", "to": "scraper", "label": "consume" },
+    { "id": "aDlq", "from": "colas", "to": "dlq", "label": "tras 3 intentos", "variant": "dashed" },
+    { "id": "leerWebs", "from": "scraper", "to": "webs", "label": "scraping" },
+    { "id": "guardar", "from": "scraper", "to": "rds", "label": "upsert precios" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Web pública (ADR 0001, 0007, 0008)", "items": ["SPA React estática en S3 detrás de CloudFront", "API REST de solo lectura definida en openapi.yaml", "Sigue disponible aunque falle el scraping"] },
+    { "dot": "emerald", "title": "Pipeline de scraping (ADR 0004, 0005, 0011)", "items": ["Un mensaje SQS por comercio aísla cada falla", "Cola liviana (json/html) y cola browser (Playwright), cada una con su Lambda", "Normaliza, agrupa por marca + tamaño + pg_trgm y guarda solo el último precio", "Agotados los 3 intentos, el mensaje va a la DLQ"] },
+    { "dot": "rose", "title": "Seguridad y costo (ADR 0002, 0003, 0010)", "items": ["Lambdas fuera de VPC: sin NAT, costo de red 0", "RDS público con SSL obligatorio y un usuario por componente", "Todas las Lambdas leen configuración y credenciales de Parameter Store"] }
+  ]
+}

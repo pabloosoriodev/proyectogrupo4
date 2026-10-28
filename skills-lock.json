@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "skills": {
+    "crear-guardrail": {
+      "source": "adminoryslabs/Armory",
+      "sourceType": "github",
+      "skillPath": "skills/crear-guardrail/SKILL.md",
+      "computedHash": "51f276be3fb311da01407fd391bbe74d1cf5ddee44964816f0b83cc3db778574"
+    },
+    "generar-tech-design": {
+      "source": "adminoryslabs/Armory",
+      "sourceType": "github",
+      "skillPath": "skills/generar-tech-design/SKILL.md",
+      "computedHash": "77dae8eb9f76d2297ec120ef2d53b445186865c791d33b33ab342af1a6a8d68c"
+    },
+    "init-agent": {
+      "source": "adminoryslabs/Armory",
+      "sourceType": "github",
+      "skillPath": "skills/init-agent/SKILL.md",
+      "computedHash": "987e7c49a3040f950cbc886aaf1e629d902618deb3b493855c1fd9c37fbe6538"
+    },
+    "invoke-agent": {
+      "source": "adminoryslabs/Armory",
+      "sourceType": "github",
+      "skillPath": "skills/invoke-agent/SKILL.md",
+      "computedHash": "12387ce5a601544b66d4dc59f7fdcf9280e343689c784d90cc3db68681c011d6"
+    },
+    "preparar-sprint0": {
+      "source": "adminoryslabs/Armory",
+      "sourceType": "github",
+      "skillPath": "skills/preparar-sprint0/SKILL.md",
+      "computedHash": "295e2ea7513ad4a039ab3ee0cd149d4d07c3b8e80ecd0b6f0cef0a1c27055ee3"
+    },
+    "revision-adversarial": {
+      "source": "adminoryslabs/Armory",
+      "sourceType": "github",
+      "skillPath": "skills/revision-adversarial/SKILL.md",
+      "computedHash": "665292baf3d60cab35610557052d21b2aebedd483cd5f82dad4924e2a988cb07"
+    },
+    "veredicto": {
+      "source": "adminoryslabs/Armory",
+      "sourceType": "github",
+      "skillPath": "skills/veredicto/SKILL.md",
+      "computedHash": "7b4cb0f1ed0d88dbd7d381ae7ec1fd22ec72c4d2055eb902969bb5fcbb5a6880"
+    }
+  }
+}
