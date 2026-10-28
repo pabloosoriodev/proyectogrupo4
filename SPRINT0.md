@@ -40,7 +40,7 @@ Objetivo: un esqueleto que funcione de punta a punta en local, sin lógica de ne
 | Rol | Rutas |
 |---|---|
 | TESTER | `tests/**` (unitarias e integración), `tests/fixtures/**`, `jest.config.js` (raíz), `informes/TESTER-*.md` |
-| DEV | `api/**`, `scraper/**`, `shared/**`, `web/**`, `infra/**`, `db/**`, `package.json`, `package-lock.json`, `.eslintrc*`, `.prettierrc*`, `.env.example`, `.gitignore`, `informes/DEV-*.md` |
+| DEV | `api/**`, `scraper/**`, `shared/**`, `web/**`, `infra/**`, `db/**`, `package.json`, `package-lock.json`, `.eslintrc*`, `eslint.config.js`, `.prettierrc*`, `.prettierignore`, `.env.example`, `.gitignore`, `informes/DEV-*.md` |
 | Solo LEAD / humano | `AGENTS.md`, `CLAUDE.md`, `.claude/**`, `.agents/**`, `skills-lock.json`, `SPRINT0.md`, `openapi.yaml`, `PRD.md`, `TECH-DESIGN.md`, `adrs/**`, `historias-usuario/**`, `docs/**`, `encargos/**`, `informes/VEREDICTO-*.md` |
 
 > Esta tabla también se copia en `CLAUDE.md` → `## Propiedad de rutas` (no existe `AGENTS.md`).
@@ -164,6 +164,11 @@ Aclaraciones durante el ciclo (2026-10-27, humano) — valen igual para TESTER y
     local para verificar su trabajo. Nadie detiene el servicio `postgresql-x64-16`: el caso "base no
     disponible" (criterio 6) se reproduce con variables de entorno que apuntan a un puerto sin base
     (por ejemplo `DB_PORT=5999`), que tienen prioridad sobre `.env` (aclaración 11).
+21. **ESLint:** ESLint 9 con configuración plana en `eslint.config.js`; `eslint.config.js` y
+    `.prettierignore` se agregan a las rutas del DEV.
+22. **Alcance del lint:** `npm run lint` revisa todo el repositorio, incluidas las pruebas
+    (`tests/**`). Si el criterio 9 falla por estilo en `tests/**`, en el veredicto ese rojo se
+    devuelve al TESTER.
 
 ## 8. Cambios durante el ciclo
 
@@ -176,3 +181,4 @@ Aclaraciones durante el ciclo (2026-10-27, humano) — valen igual para TESTER y
 | 2026-10-27 | Aclaraciones 11–17 (entorno, web, módulos, CORS, `requestId`, scripts y dependencias de pruebas) a partir de las dudas del TESTER | Humano |
 | 2026-10-27 | Alcance ampliado: maquetado estático de "Buscar productos" (HU-03, solo estado con resultados) en `/buscar`; DoD 17 con excepción y nuevos criterios 18–20; TESTER debe cubrirlos | Humano |
 | 2026-10-27 | Aclaraciones 18–20 (creación de la base local, `.env` local y uso de la base) a partir de las dudas del DEV | Humano |
+| 2026-10-27 | Aclaraciones 21–22 (ESLint 9 flat config, lint de todo el repo); `eslint.config.js` y `.prettierignore` al mapa del DEV | Humano |

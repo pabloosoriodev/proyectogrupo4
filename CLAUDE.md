@@ -74,7 +74,7 @@ Recomendar tecnología y metodología para realizar el scrapeo de paginas web de
 | Rol | Rutas |
 |---|---|
 | TESTER | `tests/**` (unitarias e integración), `tests/fixtures/**`, `jest.config.js` (raíz), `informes/TESTER-*.md` |
-| DEV | `api/**`, `scraper/**`, `shared/**`, `web/**`, `infra/**`, `db/**`, `package.json`, `package-lock.json`, `.eslintrc*`, `.prettierrc*`, `.env.example`, `.gitignore`, `informes/DEV-*.md` |
+| DEV | `api/**`, `scraper/**`, `shared/**`, `web/**`, `infra/**`, `db/**`, `package.json`, `package-lock.json`, `.eslintrc*`, `eslint.config.js`, `.prettierrc*`, `.prettierignore`, `.env.example`, `.gitignore`, `informes/DEV-*.md` |
 | Solo LEAD / humano | `AGENTS.md`, `CLAUDE.md`, `.claude/**`, `.agents/**`, `skills-lock.json`, `SPRINT0.md`, `openapi.yaml`, `PRD.md`, `TECH-DESIGN.md`, `adrs/**`, `historias-usuario/**`, `docs/**`, `encargos/**`, `informes/VEREDICTO-*.md` |
 
 Cada rol solo modifica sus rutas y hace commits únicamente de ellas, con el prefijo `[TESTER]` o
