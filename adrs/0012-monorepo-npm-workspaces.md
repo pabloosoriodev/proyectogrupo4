@@ -26,7 +26,7 @@ proyectogrupo4/
 ├─ scraper/                orquestador + adaptadores por comercio
 ├─ web/                    React + Vite (ADR 0008)
 ├─ db/migrations/          migraciones no bloqueantes
-└─ PRD.md, TECH-DESIGN.md, adrs/, historias-usuario/   documentación
+└─ PRD.md, TECH-DESIGN.md, adrs/, hus/   documentación
 ```
 
 ## Alternativas consideradas

@@ -50,7 +50,7 @@ Objetivo: un esqueleto que funcione de punta a punta en local, sin lógica de ne
 |---|---|
 | TESTER | `tests/**` (unitarias e integración), `tests/fixtures/**`, `jest.config.js` (raíz), `informes/TESTER-*.md` |
 | DEV | `api/**`, `scraper/**`, `shared/**`, `web/**`, `infra/**`, `db/**`, `package.json`, `package-lock.json`, `.eslintrc*`, `eslint.config.js`, `.prettierrc*`, `.prettierignore`, `.env.example`, `.gitignore`, `informes/DEV-*.md` |
-| Solo LEAD / humano | `AGENTS.md`, `CLAUDE.md`, `.claude/**`, `.agents/**`, `skills-lock.json`, `SPRINT0.md`, `openapi.yaml`, `PRD.md`, `TECH-DESIGN.md`, `adrs/**`, `historias-usuario/**`, `docs/**`, `encargos/**`, `informes/VEREDICTO-*.md` |
+| Solo LEAD / humano | `AGENTS.md`, `CLAUDE.md`, `.claude/**`, `.agents/**`, `skills-lock.json`, `SPRINT0.md`, `openapi.yaml`, `PRD.md`, `TECH-DESIGN.md`, `adrs/**`, `hus/**`, `docs/**`, `encargos/**`, `informes/VEREDICTO-*.md` |
 
 > Esta tabla también se copia en `CLAUDE.md` → `## Propiedad de rutas` (no existe `AGENTS.md`).
 > Las pruebas viven en `tests/` en la raíz (opción permitida por `CLAUDE.md`) para que TESTER y DEV
