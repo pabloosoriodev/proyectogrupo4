@@ -22,7 +22,8 @@
     "test:integration": "jest --selectProjects integration",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
-    "build": "sam build --template-file infra/template.yaml --build-in-source && npm run build --workspace web"
+    "build": "npm run build:api && sam build --template-file infra/template.yaml && npm run build --workspace web",
+    "build:api": "node infra/scripts/bundle-api.js"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",

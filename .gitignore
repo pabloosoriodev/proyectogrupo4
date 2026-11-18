@@ -8,6 +8,7 @@ node_modules/
 
 # Builds
 .aws-sam/
+infra/dist/
 web/dist/
 
 # Pruebas y logs

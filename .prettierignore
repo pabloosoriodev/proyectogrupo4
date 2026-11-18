@@ -2,6 +2,7 @@
 node_modules/
 package-lock.json
 .aws-sam/
+infra/dist/
 web/dist/
 coverage/
 

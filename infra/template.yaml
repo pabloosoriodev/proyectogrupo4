@@ -45,8 +45,10 @@ Resources:
   HealthFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ../api
-      Handler: src/handlers/health.handler
+      # Generado por `npm run build:api` (esbuild): handler + shared/ + pg + dotenv en un solo
+      # archivo. SAM no resuelve las dependencias locales del monorepo (ADR-0012).
+      CodeUri: dist/api
+      Handler: health.handler
       Runtime: nodejs22.x
       Timeout: !Ref FunctionTimeoutSeconds
       MemorySize: !Ref FunctionMemorySize
@@ -67,19 +69,6 @@ Resources:
             ApiId: !Ref HttpApi
             Path: /v1/health
             Method: GET
-    # esbuild empaqueta el handler con shared/, pg y dotenv en un solo archivo: SAM no resuelve
-    # por sí solo las dependencias locales del monorepo (ADR-0012).
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        EntryPoints:
-          - src/handlers/health.js
-        Platform: node
-        Target: node22
-        Format: cjs
-        Minify: false
-        External:
-          - pg-native
 
 Outputs:
   HttpApiUrl:

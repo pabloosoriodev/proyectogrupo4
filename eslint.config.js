@@ -9,6 +9,7 @@ module.exports = [
     ignores: [
       '**/node_modules/**',
       '.aws-sam/**',
+      'infra/dist/**',
       'web/dist/**',
       'coverage/**',
       'docs/**',
