@@ -1,0 +1,19 @@
+# Generados / dependencias
+node_modules/
+package-lock.json
+.aws-sam/
+web/dist/
+coverage/
+
+# Documentación y configuración del LEAD/humano: no es código, no la formatea el lint
+*.md
+docs/
+dashboard/
+adrs/
+historias-usuario/
+encargos/
+informes/
+.claude/
+.agents/
+skills-lock.json
+openapi.yaml

@@ -1,0 +1,47 @@
+{
+  "name": "proyectogrupo4",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Comparador de precios entre comercios/supermercados (monorepo, ADR-0012)",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "api",
+    "scraper",
+    "shared",
+    "web"
+  ],
+  "scripts": {
+    "dev": "node infra/local/dev.js",
+    "dev:api": "node api/src/devServer.js",
+    "dev:web": "npm run dev --workspace web",
+    "db:check": "node db/check.js",
+    "db:migrate": "node db/migrate.js",
+    "test": "jest --selectProjects unit web",
+    "test:integration": "jest --selectProjects integration",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "build": "sam build --template-file infra/template.yaml --build-in-source && npm run build --workspace web"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@babel/preset-env": "^7.28.0",
+    "@babel/preset-react": "^7.27.1",
+    "@eslint/js": "^9.39.5",
+    "ajv": "^8.20.0",
+    "babel-jest": "^30.5.2",
+    "babel-plugin-transform-vite-meta-env": "^1.0.3",
+    "esbuild": "^0.28.2",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "jest": "^30.5.2",
+    "jest-environment-jsdom": "^30.5.2",
+    "node-pg-migrate": "^7.9.1",
+    "prettier": "^3.9.10",
+    "yaml": "^2.9.1"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "@proyectogrupo4/scraper",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pipeline de scraping (orquestador + adaptadores por comercio). Vacío hasta HU-01."
+}

@@ -1,0 +1,15 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno locales (nunca se suben; solo .env.example)
+.env
+.env.*
+!.env.example
+
+# Builds
+.aws-sam/
+web/dist/
+
+# Pruebas y logs
+coverage/
+*.log

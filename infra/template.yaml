@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Comparador de precios - esqueleto del Sprint 0 (ADR-0009). Solo la Lambda de salud y su
+  HTTP API. Sin RDS, SQS, DLQ ni Scheduler: el pipeline de scraping llega con HU-01.
+
+Parameters:
+  DbHost:
+    Type: String
+    Description: Host de PostgreSQL.
+  DbPort:
+    Type: String
+    Description: Puerto de PostgreSQL.
+  DbName:
+    Type: String
+    Description: Nombre de la base de datos.
+  DbUser:
+    Type: String
+    Description: Usuario de la API en PostgreSQL.
+  DbPassword:
+    Type: String
+    NoEcho: true
+    Description: Contraseña del usuario de la API (en AWS vendrá de Parameter Store, ADR-0010).
+  DbSsl:
+    Type: String
+    AllowedValues: ['true', 'false']
+    Description: Si la conexión a PostgreSQL exige SSL (ADR-0003).
+  DbConnectTimeoutMs:
+    Type: String
+    Description: Tiempo máximo para conectar y ejecutar la consulta de salud, en milisegundos.
+  CorsAllowedOrigin:
+    Type: String
+    Description: Origen de la web autorizado por CORS.
+  FunctionTimeoutSeconds:
+    Type: Number
+    Description: Timeout de la Lambda; debe superar DbConnectTimeoutMs.
+  FunctionMemorySize:
+    Type: Number
+    Description: Memoria de la Lambda en MB.
+
+Resources:
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+
+  HealthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../api
+      Handler: src/handlers/health.handler
+      Runtime: nodejs22.x
+      Timeout: !Ref FunctionTimeoutSeconds
+      MemorySize: !Ref FunctionMemorySize
+      Environment:
+        Variables:
+          DB_HOST: !Ref DbHost
+          DB_PORT: !Ref DbPort
+          DB_NAME: !Ref DbName
+          DB_USER: !Ref DbUser
+          DB_PASSWORD: !Ref DbPassword
+          DB_SSL: !Ref DbSsl
+          DB_CONNECT_TIMEOUT_MS: !Ref DbConnectTimeoutMs
+          CORS_ALLOWED_ORIGIN: !Ref CorsAllowedOrigin
+      Events:
+        GetHealth:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /v1/health
+            Method: GET
+    # esbuild empaqueta el handler con shared/, pg y dotenv en un solo archivo: SAM no resuelve
+    # por sí solo las dependencias locales del monorepo (ADR-0012).
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints:
+          - src/handlers/health.js
+        Platform: node
+        Target: node22
+        Format: cjs
+        Minify: false
+        External:
+          - pg-native
+
+Outputs:
+  HttpApiUrl:
+    Description: URL base de la HTTP API.
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}'
