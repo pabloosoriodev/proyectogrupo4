@@ -1,6 +1,6 @@
 # HU-03 — Buscar productos
 
-**Actor:** Consumidor · **Depende de:** HU-01 · **Origen:** `../PRD.md` v1.1
+**Actor:** Consumidor · **Depende de:** HU-01 · **Origen:** `../PRD.md` v1.2 (CAMBIO-01)
 
 **Como** consumidor
 **quiero** buscar productos por nombre, marca o categoría desde la web, sin registrarme

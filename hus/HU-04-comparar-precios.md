@@ -1,6 +1,6 @@
 # HU-04 — Comparar precios de un producto entre comercios
 
-**Actor:** Consumidor · **Depende de:** HU-02, HU-03 · **Origen:** `../PRD.md` v1.1
+**Actor:** Consumidor · **Depende de:** HU-02, HU-03 · **Origen:** `../PRD.md` v1.2 (CAMBIO-01)
 
 **Como** consumidor
 **quiero** ver los precios de un producto en los distintos comercios ordenados de menor a mayor

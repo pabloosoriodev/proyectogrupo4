@@ -1,6 +1,6 @@
 # HU-02 — Reconocer el mismo producto por nombre similar
 
-**Actor:** Consumidor · **Depende de:** HU-01 · **Origen:** `../PRD.md` v1.1
+**Actor:** Consumidor · **Depende de:** HU-01 · **Origen:** `../PRD.md` v1.2 (CAMBIO-01)
 
 **Como** consumidor
 **quiero** que un mismo producto vendido en distintas tiendas aparezca agrupado aunque cada tienda lo nombre distinto

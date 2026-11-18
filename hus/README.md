@@ -1,6 +1,6 @@
 # Historias de Usuario — Comparador de precios
 
-Basadas en `../PRD.md` v1.1. Esta primera entrega cubre el flujo principal (criterio de éxito del PRD):
+Basadas en `../PRD.md` v1.2. Esta primera entrega cubre el flujo principal (criterio de éxito del PRD):
 obtener precios → reconocer el mismo producto → buscar → comparar.
 
 | ID    | Historia                                                                  | Actor                   | Depende de   |
