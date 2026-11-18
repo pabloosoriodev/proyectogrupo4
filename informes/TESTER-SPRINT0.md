@@ -26,7 +26,7 @@ DEV. La API se ejercita con su comando observable (`npm run dev:api`) por HTTP; 
 | `npm run test:integration` | **código 0** — 2 suites, 17 pruebas, todas en verde (contra `comparador_dev`) |
 | `npx eslint tests jest.config.js` | código 0 |
 | `npx prettier --check tests jest.config.js` | código 0 |
-| `npm run lint` (todo el repo) | **código 1** — único error en `dashboard/estado.js:1:1` (`'window' is not defined`), ver pregunta 1; ninguno en rutas del TESTER |
+| `npm run lint` (todo el repo) | primera corrida: código 1, por un único error en `dashboard/estado.js:1:1`, fuera de las rutas del TESTER (ver pregunta 1). **Tras excluir `dashboard/**` del lint: código 0** (ESLint sin errores y `prettier --check .` en verde) |
 
 ## Criterio de la DoD → prueba
 
@@ -102,11 +102,14 @@ Variables opcionales del arnés (solo pruebas):
 
 ## Preguntas para el LEAD (lo que `SPRINT0.md` no dice; no lo decidí)
 
-1. **`npm run lint` (DoD 9) falla fuera de las rutas de TESTER y DEV.** El único error está en
+1. **Resuelta (LEAD, 2026-11-17):** el humano excluyó `dashboard/**` del lint y esa ruta pasa al LEAD.
+   `npm run lint` vuelve a correr con código 0. Pregunta original: **`npm run lint` (DoD 9) falla fuera
+   de las rutas de TESTER y DEV.** El único error está en
    `dashboard/estado.js:1:1` (`'window' is not defined`, `no-undef`). `dashboard/**` no aparece en el
    mapa de rutas, así que no lo toqué. Además, como el script es `eslint . && prettier --check .`, el
    `prettier --check` de todo el repo no llega a correr mientras ESLint falle. ¿A quién se asigna
    `dashboard/**`, o se excluye del lint?
-2. **DoD 19, nombre, marca y tamaño:** ¿hay un formato o valores que la prueba deba exigir (por ejemplo,
+2. **Pendiente (el LEAD la llevó al humano; la prueba queda como está y el punto sigue NO
+   VERIFICADO).** **DoD 19, nombre, marca y tamaño:** ¿hay un formato o valores que la prueba deba exigir (por ejemplo,
    que la marca de cada tarjeta sea una de las opciones del selector `Marca`, o un patrón de tamaño como
    `1 L` / `400 g`)? Sin eso, la prueba no puede distinguirlos.
