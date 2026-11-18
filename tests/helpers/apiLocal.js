@@ -77,13 +77,19 @@ async function iniciarApi(entornoExtra = {}) {
   let resto = '';
   let codigoSalida = null;
 
-  const proceso = spawn('npm', ['run', 'dev:api'], {
-    cwd: RAIZ_REPO,
-    env: { ...leerDotEnv(), ...process.env, ...entornoExtra },
-    shell: ES_WINDOWS,
-    detached: !ES_WINDOWS,
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  // En Windows `npm` es un .cmd y necesita shell; se pasa como una sola cadena fija (sin argumentos
+  // concatenados) para no disparar el aviso DEP0190 de Node.
+  const proceso = spawn(
+    ES_WINDOWS ? 'npm run dev:api' : 'npm',
+    ES_WINDOWS ? [] : ['run', 'dev:api'],
+    {
+      cwd: RAIZ_REPO,
+      env: { ...leerDotEnv(), ...process.env, ...entornoExtra },
+      shell: ES_WINDOWS,
+      detached: !ES_WINDOWS,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
 
   const alRecibir = (fragmento) => {
     const lineas = (resto + fragmento.toString('utf8')).split(/\r?\n/);
@@ -107,7 +113,7 @@ async function iniciarApi(entornoExtra = {}) {
       } else {
         try {
           process.kill(-proceso.pid, 'SIGTERM');
-        } catch (error) {
+        } catch {
           // El grupo de procesos ya terminó.
         }
       }
@@ -130,22 +136,27 @@ async function iniciarApi(entornoExtra = {}) {
   return { salida, estaVivo, detener };
 }
 
-/** GET /v1/health con un límite de tiempo; nunca deja la prueba colgada. */
-async function pedirSalud() {
+/**
+ * GET /v1/health con un límite de tiempo; nunca deja la prueba colgada.
+ * @param {{origen?: string}} opciones `origen` se envía como cabecera `Origin` (como un navegador).
+ */
+async function pedirSalud({ origen } = {}) {
   const inicio = Date.now();
   const respuesta = await fetch(new URL(RUTA_SALUD, urlBaseApi()), {
+    headers: origen ? { Origin: origen } : {},
     signal: AbortSignal.timeout(ESPERA_PETICION_MS),
   });
   const texto = await respuesta.text();
   let cuerpo;
   try {
     cuerpo = JSON.parse(texto);
-  } catch (error) {
+  } catch {
     cuerpo = undefined;
   }
   return {
     status: respuesta.status,
     contentType: respuesta.headers.get('content-type') || '',
+    origenPermitido: respuesta.headers.get('access-control-allow-origin'),
     cuerpo,
     texto,
     duracionMs: Date.now() - inicio,
@@ -159,7 +170,7 @@ function registrosJson(lineas) {
     if (!recortada.startsWith('{')) continue;
     try {
       registros.push(JSON.parse(recortada));
-    } catch (error) {
+    } catch {
       // No es una línea JSON completa: no cuenta como log estructurado.
     }
   }
@@ -186,4 +197,43 @@ async function esperarLogsDesde(api, desde) {
   return registrosJson(api.salida.slice(desde));
 }
 
-module.exports = { iniciarApi, pedirSalud, esperarLogsDesde, tieneCamposDeLog, esperarHasta };
+/**
+ * Hace `cantidad` invocaciones de GET /v1/health y devuelve, por invocación, los registros JSON
+ * nuevos y el conjunto de `requestId` que aparecen en los que tienen los campos de log.
+ */
+async function invocarYLeerLogs(api, cantidad) {
+  const invocaciones = [];
+  for (let numero = 1; numero <= cantidad; numero += 1) {
+    const desde = api.salida.length;
+    await pedirSalud();
+    const registros = await esperarLogsDesde(api, desde);
+    const requestIds = new Set(
+      registros.filter(tieneCamposDeLog).map((registro) => String(registro.requestId)),
+    );
+    invocaciones.push({ numero, registros, requestIds: [...requestIds] });
+  }
+  return invocaciones;
+}
+
+/** `requestId` que aparecen en más de una invocación (aclaración 15: debe quedar vacío). */
+function requestIdsRepetidos(invocaciones) {
+  const vistos = new Map();
+  for (const { numero, requestIds } of invocaciones) {
+    for (const requestId of requestIds) {
+      vistos.set(requestId, [...(vistos.get(requestId) || []), numero]);
+    }
+  }
+  return [...vistos]
+    .filter(([, numeros]) => numeros.length > 1)
+    .map(([requestId, numeros]) => ({ requestId, numeros }));
+}
+
+module.exports = {
+  iniciarApi,
+  pedirSalud,
+  esperarLogsDesde,
+  tieneCamposDeLog,
+  esperarHasta,
+  invocarYLeerLogs,
+  requestIdsRepetidos,
+};

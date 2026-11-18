@@ -24,8 +24,28 @@ const MARGEN_FALLO_SEGURO_MS = 1000; // "en menos de DB_CONNECT_TIMEOUT_MS + 1 s
 const TEXTO_API_OK = 'API: ok';
 const TEXTO_API_NO_DISPONIBLE = 'API: no disponible';
 
-// DoD 11
+// DoD 11 + aclaración 15 (requestId distinto en cada invocación)
 const CAMPOS_LOG = Object.freeze(['level', 'message', 'requestId']);
+
+// Aclaración 14: Access-Control-Allow-Origin = CORS_ALLOWED_ORIGIN. Se usa un origen propio de la
+// prueba (no el de `.env`) para demostrar que el valor sale de la variable y no está fijo.
+const ORIGEN_CORS_DE_PRUEBA = 'http://origen-de-prueba.localhost:5173';
+
+// DoD 18–20 + aclaración 23: maquetado estático de "Buscar productos" en /buscar
+const RUTA_BUSCAR = '/buscar';
+const BUSQUEDA_INICIAL = 'leche';
+const TEXTO_BOTON_BUSCAR = 'Buscar';
+const ROTULO_SELECTOR_MARCA = 'Marca';
+const ROTULO_SELECTOR_CATEGORIA = 'Categoría';
+const TEXTO_RESULTADOS = '12 productos encontrados para «leche»';
+const MINIMO_TARJETAS = 3;
+const FORMATO_PRECIO = /Desde S\/ \d+\.\d{2}(?!\d)/;
+const FORMATO_DISPONIBILIDAD = /Disponible en (\d+) comercios/;
+const COMERCIOS_MIN = 1;
+const COMERCIOS_MAX = 3;
+const TEXTO_BOTON_COMPARAR = 'Comparar precios';
+const PREFIJO_RUTAS_API = '/v1/';
+const RUTA_PRODUCTOS = '/v1/productos';
 
 let openapiCache;
 
@@ -53,7 +73,8 @@ function resolverRef(documento, ref) {
 function esquemaRespuestaSalud(status) {
   const openapi = cargarOpenapi();
   const respuesta = openapi.paths[RUTA_SALUD].get.responses[String(status)];
-  if (!respuesta) throw new Error(`openapi.yaml no declara la respuesta ${status} de ${RUTA_SALUD}`);
+  if (!respuesta)
+    throw new Error(`openapi.yaml no declara la respuesta ${status} de ${RUTA_SALUD}`);
   const esquema = respuesta.content['application/json'].schema;
   return esquema.$ref ? resolverRef(openapi, esquema.$ref) : esquema;
 }
@@ -77,6 +98,21 @@ module.exports = {
   TEXTO_API_OK,
   TEXTO_API_NO_DISPONIBLE,
   CAMPOS_LOG,
+  ORIGEN_CORS_DE_PRUEBA,
+  RUTA_BUSCAR,
+  BUSQUEDA_INICIAL,
+  TEXTO_BOTON_BUSCAR,
+  ROTULO_SELECTOR_MARCA,
+  ROTULO_SELECTOR_CATEGORIA,
+  TEXTO_RESULTADOS,
+  MINIMO_TARJETAS,
+  FORMATO_PRECIO,
+  FORMATO_DISPONIBILIDAD,
+  COMERCIOS_MIN,
+  COMERCIOS_MAX,
+  TEXTO_BOTON_COMPARAR,
+  PREFIJO_RUTAS_API,
+  RUTA_PRODUCTOS,
   urlBaseApi,
   esquemaRespuestaSalud,
   erroresContraContrato,
