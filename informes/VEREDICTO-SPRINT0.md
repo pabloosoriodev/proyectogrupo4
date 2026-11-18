@@ -86,14 +86,26 @@ Se revisó `git log 4fef72e..HEAD --name-only`: 22 commits.
   npm 12. Se revirtió para no tocar un archivo del DEV, pero conviene regenerar el lock con la
   versión de npm del proyecto.
 
-## NO VERIFICADO (decisión del humano)
+## Puntos que estaban NO VERIFICADO (verificados por el LEAD a pedido del humano)
 
-1. **DoD 5, "ejecuta `SELECT 1`":** no se observa desde fuera de la API; solo se verifica el 200 y el cuerpo.
-2. **DoD 19, nombre y marca por separado:** aceptado por la aclaración 24 (basta con que haya texto).
-3. **La web real contra la API real en un navegador**, y el CORS en preflight (`OPTIONS`): solo se
-   verificaron con pruebas jsdom y con `curl`/HTTP.
-4. **La Lambda en AWS:** no hay despliegue en el Sprint 0, así que no se probó el paquete en Lambda real.
+| Punto | Resultado | Evidencia |
+|---|---|---|
+| DoD 5, "ejecuta `SELECT 1`" | 🟢 | Código: `api/src/handlers/health.js:5` (`HEALTH_QUERY = 'SELECT 1'`) y `:26` (`getPool().query(HEALTH_QUERY)`). En ejecución: con la API levantada, `pg_stat_activity` de `comparador_dev` muestra la conexión de la API con última consulta `SELECT 1` |
+| DoD 19, nombre y marca por separado | 🟢 | `web/src/components/ProductCard.jsx:8-12`: el nombre va en un `h3` (`product-card__name`) y la marca en otro elemento (`product-card__brand`). Los 12 productos de `web/src/data/searchResultsSample.js` tienen nombre y marca no vacíos y distintos entre sí. La captura de `/buscar` en Chrome los muestra en líneas separadas |
+| Web real contra API real en un navegador | 🟢 | `npm run dev:api` + `npm run dev:web` y Chrome headless (1280×900): `/` muestra "Estado del sistema — API: ok"; `/buscar` muestra "12 productos encontrados para «leche»", 12 tarjetas con "Desde S/ n.nn", "Disponible en N comercios" (N entre 2 y 3) y "Comparar precios". `GET /v1/health` con `Origin: http://localhost:5173` → 200 y `Access-Control-Allow-Origin: http://localhost:5173` |
+| Paquete de la Lambda | 🟢 (local) | El `health.js` generado por `sam build` (199 KB, sin `node_modules`), copiado a una carpeta aislada e invocado con Node 22 y un evento HTTP API 2.0: con base → `200 {"status":"ok","db":"ok"}`; con `DB_PORT=5999` → `503 {"status":"degraded","db":"error"}`. El paquete se generó con Node 26, porque con Node 22 el build falla (criterio 10) |
 
-**Riesgo para decidir:** `npm audit` reporta 2 vulnerabilidades altas en `glob`, solo en dependencias
-de desarrollo (vía Jest y `node-pg-migrate`). Las de producción están limpias
-(`npm audit --omit=dev` → 0). El DEV propone aceptarlo.
+**Sigue NO VERIFICADO:**
+- **La Lambda desplegada en AWS:** el Sprint 0 no incluye despliegue y no hay cuenta de AWS configurada.
+  Se verificó el paquete, no el servicio en la nube.
+
+**Observación de CORS:** `OPTIONS /v1/health` responde 404 en el servidor local. No afecta al
+Sprint 0: la web hace un `GET` sin cabeceras propias, que el navegador envía sin preflight, y la
+aclaración 14 solo pide la cabecera en la respuesta. Hay que tenerlo en cuenta cuando una HU agregue
+peticiones con cabeceras propias.
+
+## Riesgos aceptados por el humano
+
+- **`npm audit`:** 2 vulnerabilidades altas en `glob`, solo en dependencias de desarrollo (vía Jest y
+  `node-pg-migrate`). Las de producción están limpias (`npm audit --omit=dev` → 0). Aceptado por
+  ahora (2026-11-17).
