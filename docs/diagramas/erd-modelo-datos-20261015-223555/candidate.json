@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "diagram_type": "erd",
+  "meta": {
+    "title": "Comparador de precios — modelo de datos del MVP",
+    "locale": "es",
+    "output": "docs/diagramas/erd-modelo-datos-20261015-223555/modelo-datos.html",
+    "quality_profile": "showcase"
+  },
+  "layout": {
+    "mode": "grid",
+    "gapX": 72,
+    "gapY": 38
+  },
+  "entities": [
+    {
+      "id": "comercio",
+      "label": "comercio",
+      "tag": "comercios",
+      "row": 0,
+      "col": 0,
+      "attributes": [
+        { "name": "id", "type": "bigint", "key": "pk" },
+        { "name": "slug", "type": "varchar(64)", "key": "uk" },
+        { "name": "nombre", "type": "varchar(120)" },
+        { "name": "activo", "type": "boolean" }
+      ]
+    },
+    {
+      "id": "publicacion",
+      "label": "publicacion",
+      "tag": "precios",
+      "row": 0,
+      "col": 1,
+      "width": 270,
+      "attributes": [
+        { "name": "id", "type": "bigint", "key": "pk" },
+        { "name": "comercio_id", "type": "bigint", "key": ["fk", "uk"], "references": "comercio.id" },
+        { "name": "url", "type": "text", "key": "uk" },
+        { "name": "grupo_id", "type": "bigint", "key": "fk", "references": "producto_grupo.id" },
+        { "name": "nombre_original", "type": "text" },
+        { "name": "nombre_normalizado", "type": "text" },
+        { "name": "marca", "type": "varchar(120)" },
+        { "name": "categoria_origen", "type": "varchar(120)" },
+        { "name": "precio", "type": "numeric(12,2)" },
+        { "name": "fecha_captura", "type": "timestamptz" }
+      ]
+    },
+    {
+      "id": "producto_grupo",
+      "label": "producto_grupo",
+      "tag": "catálogo",
+      "row": 0,
+      "col": 2,
+      "width": 270,
+      "attributes": [
+        { "name": "id", "type": "bigint", "key": "pk" },
+        { "name": "nombre_display", "type": "varchar(200)" },
+        { "name": "marca_normalizada", "type": "varchar(120)" },
+        { "name": "tamano_valor", "type": "numeric(10,2)" },
+        { "name": "tamano_unidad", "type": "varchar(8)" },
+        { "name": "resto_normalizado", "type": "text" },
+        { "name": "categoria_id", "type": "bigint", "key": "fk", "references": "categoria.id" }
+      ]
+    },
+    {
+      "id": "categoria",
+      "label": "categoria",
+      "tag": "catálogo",
+      "row": 1,
+      "col": 2,
+      "width": 270,
+      "attributes": [
+        { "name": "id", "type": "bigint", "key": "pk" },
+        { "name": "nombre", "type": "varchar(120)" },
+        { "name": "nombre_normalizado", "type": "varchar(120)", "key": "uk" }
+      ]
+    }
+  ],
+  "relationships": [
+    { "id": "publicacionComercio", "from": "publicacion", "to": "comercio", "label": "publicada en", "fromCardinality": "many", "toCardinality": "one" },
+    { "id": "publicacionGrupo", "from": "publicacion", "to": "producto_grupo", "label": "agrupada en", "fromCardinality": "many", "toCardinality": "one" },
+    { "id": "grupoCategoria", "from": "producto_grupo", "to": "categoria", "label": "clasificado en", "fromCardinality": "many", "toCardinality": "one", "toOptional": true }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Claves", "items": ["(comercio_id, url) es único: una fila por publicación de cada comercio", "slug enlaza comercio con su configuración de scraping en Parameter Store"] },
+    { "dot": "amber", "title": "Reglas del PRD", "items": ["Sin historial: cada publicación guarda solo su último precio", "precioMin y cantidadComercios se calculan, no se guardan", "actualizadoHoy = fecha_captura de menos de 24 horas"] },
+    { "dot": "emerald", "title": "Índices (ADR 0005, 0006)", "items": ["GIN de trigramas sobre el texto normalizado", "Índice sobre marca + tamaño para buscar candidatos", "Todos creados con CREATE INDEX CONCURRENTLY"] },
+    { "dot": "slate", "title": "Supuesto", "items": ["Los tipos SQL son una propuesta inicial; el TDD fija entidades y campos, no tipos"] }
+  ]
+}

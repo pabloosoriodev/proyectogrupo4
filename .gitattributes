@@ -1,0 +1,3 @@
+# Fin de línea LF en todo el repositorio (aclaración 25 de SPRINT0.md): evita la conversión a CRLF
+# en Windows, que haría fallar Prettier (endOfLine: lf) en un clon nuevo.
+* text=auto eol=lf

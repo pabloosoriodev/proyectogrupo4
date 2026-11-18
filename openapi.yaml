@@ -1,0 +1,58 @@
+openapi: 3.1.0
+info:
+  title: Comparador de precios — API pública de lectura
+  version: 0.1.0-sprint0
+  description: >
+    Contrato de la API REST de solo lectura (ADR-0007). En el Sprint 0 solo existe el endpoint
+    de salud. Los endpoints de productos, precios y categorías se agregan con HU-03 y HU-04.
+    Cualquier cambio a este contrato lo hace el LEAD antes de que se implemente.
+servers:
+  - url: http://localhost:3000
+    description: Desarrollo local (`npm run dev:api`)
+paths:
+  /v1/health:
+    get:
+      operationId: getHealth
+      summary: Estado de la API y de su conexión a la base de datos
+      description: >
+        Ejecuta `SELECT 1` contra PostgreSQL. Responde 200 si la base está disponible y 503 si no
+        lo está o no responde dentro de `DB_CONNECT_TIMEOUT_MS`. Nunca deja la petición colgada.
+      responses:
+        "200":
+          description: La API y la base de datos están disponibles.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthOk"
+              example:
+                status: ok
+                db: ok
+        "503":
+          description: La API responde pero la base de datos no está disponible.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthDegraded"
+              example:
+                status: degraded
+                db: error
+components:
+  schemas:
+    HealthOk:
+      type: object
+      additionalProperties: false
+      required: [status, db]
+      properties:
+        status:
+          const: ok
+        db:
+          const: ok
+    HealthDegraded:
+      type: object
+      additionalProperties: false
+      required: [status, db]
+      properties:
+        status:
+          const: degraded
+        db:
+          const: error

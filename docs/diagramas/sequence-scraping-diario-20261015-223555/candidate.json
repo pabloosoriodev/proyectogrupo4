@@ -1,0 +1,273 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Scraping diario por comercio, con reintentos y DLQ",
+    "locale": "es",
+    "output": "docs/diagramas/sequence-scraping-diario-20261015-223555/scraping-diario.html",
+    "quality_profile": "showcase"
+  },
+  "participants": [
+    {
+      "id": "scheduler",
+      "type": "cloud",
+      "label": "EventBridge",
+      "sublabel": "Scheduler"
+    },
+    {
+      "id": "orquestador",
+      "type": "backend",
+      "label": "Orquestador",
+      "sublabel": "Lambda"
+    },
+    {
+      "id": "parametros",
+      "type": "security",
+      "label": "Parameter Store",
+      "sublabel": "config"
+    },
+    {
+      "id": "cola",
+      "type": "messagebus",
+      "label": "Cola SQS",
+      "sublabel": "liviana o browser"
+    },
+    {
+      "id": "scraper",
+      "type": "backend",
+      "label": "Scraper",
+      "sublabel": "Lambda + adaptador"
+    },
+    {
+      "id": "web",
+      "type": "external",
+      "label": "Web comercio",
+      "sublabel": "sitio público"
+    },
+    {
+      "id": "rds",
+      "type": "database",
+      "label": "RDS",
+      "sublabel": "PostgreSQL"
+    },
+    {
+      "id": "dlq",
+      "type": "messagebus",
+      "label": "DLQ",
+      "sublabel": "revisión manual"
+    }
+  ],
+  "segments": [
+    {
+      "from": 160,
+      "to": 275,
+      "label": "Disparo diario"
+    },
+    {
+      "from": 290,
+      "to": 545,
+      "label": "Comercio leído con éxito"
+    },
+    {
+      "from": 555,
+      "to": 775,
+      "label": "Comercio que falla"
+    }
+  ],
+  "messages": [
+    {
+      "id": "invocar",
+      "from": "scheduler",
+      "to": "orquestador",
+      "y": 170,
+      "label": "invocación diaria",
+      "variant": "emphasis"
+    },
+    {
+      "id": "pedirConfig",
+      "from": "orquestador",
+      "to": "parametros",
+      "y": 200,
+      "label": "lee comercios activos",
+      "variant": "security"
+    },
+    {
+      "id": "config",
+      "from": "parametros",
+      "to": "orquestador",
+      "y": 228,
+      "label": "URL, adaptador, límites",
+      "variant": "return"
+    },
+    {
+      "id": "encolar",
+      "from": "orquestador",
+      "to": "cola",
+      "y": 258,
+      "label": "1 mensaje por comercio",
+      "variant": "dashed"
+    },
+    {
+      "id": "entregarOk",
+      "from": "cola",
+      "to": "scraper",
+      "y": 300,
+      "label": "entrega mensaje",
+      "variant": "default"
+    },
+    {
+      "id": "leerOk",
+      "from": "scraper",
+      "to": "web",
+      "y": 330,
+      "label": "robots.txt + catálogo",
+      "variant": "emphasis",
+      "note": "modo json, html o browser según el adaptador"
+    },
+    {
+      "id": "respuestaOk",
+      "from": "web",
+      "to": "scraper",
+      "y": 400,
+      "label": "HTML / JSON",
+      "variant": "return"
+    },
+    {
+      "id": "guardar",
+      "from": "scraper",
+      "to": "rds",
+      "y": 430,
+      "label": "normaliza, agrupa, upsert",
+      "variant": "emphasis",
+      "note": "marca + tamaño exactos; similitud pg_trgm ≥ UMBRAL_SIMILITUD"
+    },
+    {
+      "id": "guardado",
+      "from": "rds",
+      "to": "scraper",
+      "y": 496,
+      "label": "ok",
+      "variant": "return"
+    },
+    {
+      "id": "confirmar",
+      "from": "scraper",
+      "to": "cola",
+      "y": 526,
+      "label": "borra mensaje",
+      "variant": "return"
+    },
+    {
+      "id": "entregarFalla",
+      "from": "cola",
+      "to": "scraper",
+      "y": 570,
+      "label": "entrega (intento n)",
+      "variant": "default"
+    },
+    {
+      "id": "leerFalla",
+      "from": "scraper",
+      "to": "web",
+      "y": 600,
+      "label": "solicita catálogo",
+      "variant": "default"
+    },
+    {
+      "id": "error",
+      "from": "web",
+      "to": "scraper",
+      "y": 630,
+      "label": "error / timeout",
+      "variant": "return"
+    },
+    {
+      "id": "reintento",
+      "from": "scraper",
+      "to": "cola",
+      "y": 660,
+      "label": "no confirma → reintento",
+      "variant": "return",
+      "note": "sus precios previos quedan intactos"
+    },
+    {
+      "id": "aDlq",
+      "from": "cola",
+      "to": "dlq",
+      "y": 725,
+      "label": "tras 3 intentos",
+      "variant": "dashed",
+      "note": "comercio, URL y motivo del fallo"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "orquestador",
+      "from": 170,
+      "to": 262,
+      "type": "backend"
+    },
+    {
+      "participant": "parametros",
+      "from": 196,
+      "to": 232,
+      "type": "security"
+    },
+    {
+      "participant": "scraper",
+      "from": 300,
+      "to": 530,
+      "type": "backend"
+    },
+    {
+      "participant": "web",
+      "from": 326,
+      "to": 404,
+      "type": "external"
+    },
+    {
+      "participant": "rds",
+      "from": 426,
+      "to": 500,
+      "type": "database"
+    },
+    {
+      "participant": "scraper",
+      "from": 570,
+      "to": 664,
+      "type": "backend"
+    },
+    {
+      "participant": "web",
+      "from": 596,
+      "to": 634,
+      "type": "external"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Aislamiento (ADR 0001)",
+      "items": [
+        "Cada comercio es un mensaje independiente",
+        "Una falla no detiene a los demás comercios"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Reintentos y DLQ (ADR 0011)",
+      "items": [
+        "Hasta 3 intentos (maxReceiveCount, configurable)",
+        "La DLQ retiene 14 días y se revisa a mano, sin alarmas"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Agrupación (ADR 0005)",
+      "items": [
+        "Se calcula al guardar cada producto",
+        "Si no supera el umbral con ningún grupo, se crea uno nuevo"
+      ]
+    }
+  ]
+}
