@@ -79,3 +79,7 @@ Recomendar tecnología y metodología para realizar el scrapeo de paginas web de
 
 Cada rol solo modifica sus rutas y hace commits únicamente de ellas, con el prefijo `[TESTER]` o
 `[DEV]` en el mensaje.
+
+`dashboard/` no forma parte del proyecto: es una vista de estado que genera la skill `/dashboard`.
+No es ruta de ningún rol, queda fuera del lint y no cuenta para la DoD ni el veredicto
+(aclaración 24 de `SPRINT0.md`).

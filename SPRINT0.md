@@ -72,14 +72,14 @@ Objetivo: un esqueleto que funcione de punta a punta en local, sin lógica de ne
 | 9 | Lint pasa | comando: `npm run lint` (ESLint + Prettier) termina con código 0 |
 | 10 | El build funciona | comando: `npm run build` ejecuta `sam build` sobre `infra/template.yaml` y compila la web sin errores |
 | 11 | Logs estructurados | prueba: cada invocación de `GET /v1/health` escribe una línea JSON con `level`, `message` y `requestId` |
-| 12 | Sin valores fijos en el código | revisión: conexión, puertos y URL de la API se leen de variables de entorno (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSL`, `DB_CONNECT_TIMEOUT_MS`, `CORS_ALLOWED_ORIGIN`, `VITE_API_URL`) documentadas en `.env.example`; búsqueda de credenciales/URLs literales en `api/`, `shared/`, `web/`, `infra/` sin resultados |
+| 12 | Sin valores fijos en el código | revisión: conexión, puertos y URL de la API se leen de variables de entorno (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSL`, `DB_CONNECT_TIMEOUT_MS`, `CORS_ALLOWED_ORIGIN`, `VITE_API_URL`, `API_PORT`) documentadas en `.env.example`; búsqueda de credenciales/URLs literales en `api/`, `shared/`, `web/`, `infra/` sin resultados |
 | 13 | Cumple el contrato de la API (ADR-0007, parte Sprint 0) | prueba: las respuestas 200 y 503 de `GET /v1/health` validan contra el esquema de `openapi.yaml` |
 | 14 | La conexión acepta SSL por configuración (ADR-0003, parte Sprint 0) | prueba unitaria: con `DB_SSL=true` el módulo de conexión pide SSL al cliente PostgreSQL; con `DB_SSL=false` no |
 | 15 | La infraestructura se limita al esqueleto (ADR-0001, parte Sprint 0) | revisión: `infra/template.yaml` declara solo la Lambda de salud y su HTTP API; no hay RDS, SQS, DLQ ni Scheduler; `scraper/` existe como workspace vacío |
 | 16 | Respeta los ADRs transversales | revisión: monorepo con workspaces `api`, `scraper`, `shared`, `web` (ADR-0012); `infra/template.yaml` en SAM (ADR-0009); web en React + Vite (ADR-0008); cliente PostgreSQL (ADR-0002); ruta bajo `/v1` (ADR-0007) — citando archivo:línea |
 | 17 | Cero lógica de negocio | revisión humana: no hay tablas, endpoints, adaptadores ni pantallas de productos, precios, comercios o categorías, **salvo** el maquetado estático de los criterios 18–20 |
 | 18 | Existe el maquetado estático de "Buscar productos" (HU-03, estado con resultados) | prueba: la ruta `/buscar` de la web muestra un campo de búsqueda con el valor inicial `leche`, un botón con el texto `Buscar`, un selector rotulado `Marca` y otro rotulado `Categoría`, y el texto `12 productos encontrados para «leche»` |
-| 19 | Las tarjetas de resultado muestran los datos de HU-03 | prueba: en `/buscar` hay al menos 3 tarjetas; cada una muestra nombre del producto, marca, tamaño, un precio con el formato `Desde S/ <número con 2 decimales>`, el texto `Disponible en <N> comercios` y un botón `Comparar precios` |
+| 19 | Las tarjetas de resultado muestran los datos de HU-03 | prueba: en `/buscar` hay al menos 3 tarjetas; cada una muestra nombre del producto, marca, un tamaño con el formato `<número> <unidad>` (unidad `g`, `kg`, `ml` o `L`), un precio con el formato `Desde S/ <número con 2 decimales>`, el texto `Disponible en <N> comercios` y un botón `Comparar precios` |
 | 20 | El maquetado es estático | prueba: cargar `/buscar` no hace ninguna petición a `/v1/productos` ni a otra ruta de la API distinta de `/v1/health`; revisión: los datos de ejemplo viven en un único archivo de datos de ejemplo dentro de `web/` |
 
 ## 6. Plan
@@ -185,6 +185,20 @@ Aclaración por CAMBIO-01 (2026-11-10, humano) — vale igual para TESTER y DEV:
     espacio después de `S/`). Como el sistema solo tiene tres comercios (Wong, Plaza Vea y Metro,
     PRD RN-2), en los datos de ejemplo `Disponible en <N> comercios` usa N entre 1 y 3.
 
+Aclaración 24 (2026-11-17, humano; la DoD la define el LEAD por delegación del humano) — vale
+igual para TESTER y DEV:
+
+24. **Cierre de dudas del ciclo:**
+    - **`dashboard/`:** no forma parte del proyecto; es solo una vista del estado que genera la
+      skill `/dashboard`. Queda fuera del lint, de la DoD y del veredicto, y no es ruta de TESTER
+      ni de DEV.
+    - **`API_PORT`:** se acepta como variable de entorno del puerto de la API local y se agrega a
+      la lista del criterio 12.
+    - **Criterio 19, nombre, marca y tamaño:** el tamaño de cada tarjeta se verifica con el formato
+      `<número> <unidad>` (unidad `g`, `kg`, `ml` o `L`; por ejemplo `400 g`, `1 L`). Para el nombre
+      y la marca basta con que haya texto: sus valores son datos de ejemplo, y su formato real se
+      fija en el contrato de HU-03.
+
 ## 8. Cambios durante el ciclo
 
 | Fecha | Cambio | Aprobado por |
@@ -198,3 +212,4 @@ Aclaración por CAMBIO-01 (2026-11-10, humano) — vale igual para TESTER y DEV:
 | 2026-10-27 | Aclaraciones 18–20 (creación de la base local, `.env` local y uso de la base) a partir de las dudas del DEV | Humano |
 | 2026-10-27 | Aclaraciones 21–22 (ESLint 9 flat config, lint de todo el repo); `eslint.config.js` y `.prettierignore` al mapa del DEV | Humano |
 | 2026-11-10 | CAMBIO-01: DoD 19 y referencia visual pasan a moneda `S/`; aclaración 23 | Humano |
+| 2026-11-17 | Aclaración 24: `dashboard/` fuera del proyecto; `API_PORT` en el criterio 12; formato del tamaño en el criterio 19 | Humano (DoD definida por el LEAD por delegación) |
