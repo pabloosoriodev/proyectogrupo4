@@ -218,5 +218,5 @@ Aclaración 25 (2026-11-17, humano):
 | 2026-10-27 | Aclaraciones 18–20 (creación de la base local, `.env` local y uso de la base) a partir de las dudas del DEV | Humano |
 | 2026-10-27 | Aclaraciones 21–22 (ESLint 9 flat config, lint de todo el repo); `eslint.config.js` y `.prettierignore` al mapa del DEV | Humano |
 | 2026-11-10 | CAMBIO-01: DoD 19 y referencia visual pasan a moneda `S/`; aclaración 23 | Humano |
-| 2026-11-17 | Aclaración 25: `.gitattributes` con fin de línea LF, ruta del DEV | Humano |
 | 2026-11-17 | Aclaración 24: `dashboard/` fuera del proyecto; `API_PORT` en el criterio 12; formato del tamaño en el criterio 19 | Humano (DoD definida por el LEAD por delegación) |
+| 2026-11-17 | Aclaración 25: `.gitattributes` con fin de línea LF, ruta del DEV | Humano |
