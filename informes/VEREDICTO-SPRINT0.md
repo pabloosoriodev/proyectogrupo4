@@ -1,16 +1,33 @@
 # Veredicto — Sprint 0
 
-**Fecha:** 2026-11-17 · **LEAD** · **Rama:** `chore/sprint0` (base `4fef72e`, HEAD `a10631c`)
+**Fecha:** 2026-11-17 · **LEAD** · **Rama:** `chore/sprint0` (base `4fef72e`; vuelta 1 sobre `a10631c`, vuelta 2 sobre `9f0aa9e`)
 **Spec:** `SPRINT0.md` (DoD 1–20, aclaraciones 1–25) · **Mapa de rutas:** `CLAUDE.md`
 **Entregas:**
 - TESTER: `e343875`, `f0a5e68`, `aa102fd` — `informes/TESTER-SPRINT0.md`
-- DEV: `4b1e15f`, `2c720ec`, `a10631c` — `informes/DEV-SPRINT0.md`
+- DEV: `4b1e15f`, `2c720ec`, `a10631c`; vuelta 1 del criterio 10: `35a0e89`, `9f0aa9e` — `informes/DEV-SPRINT0.md`
 
 ## Resultado
 
-**🔴 No cumple todavía: 1 rojo (criterio 10), que se devuelve al DEV.** Los otros 18 criterios
-vigentes están en verde; el 17 fue eliminado por el humano (aclaración 26). Quedan 4 puntos
-NO VERIFICADO para que decida el humano. No se abre el PR hasta que el criterio 10 esté en verde.
+**🟢 Cumple (vuelta 2).** Los 19 criterios vigentes están en verde; el 17 fue eliminado por el
+humano (aclaración 26). El criterio 10, devuelto al DEV en la vuelta 1, quedó corregido en
+`35a0e89` y se verificó en un clon limpio con Node 22. Solo queda NO VERIFICADO la Lambda
+desplegada en AWS (no hay despliegue en el Sprint 0). Se abre el PR.
+
+### Vuelta 2 (2026-11-17, Node 22.23.4 / npm 10.9.9)
+
+| Comando | Resultado |
+|---|---|
+| Clon limpio de `9f0aa9e`, `npm ci` | código 0 — 435 paquetes en `node_modules` |
+| `npm run build` | código 0 — "Build Succeeded" (SAM) y "built in 254ms" (Vite); `node_modules` sigue con 435 paquetes |
+| Paquete de la Lambda | `.aws-sam/build/HealthFunction/health.js` (199 KB) + `package.json` (96 B) sin dependencias |
+| `npm run lint` (clon) | código 0 |
+| `npm run test` (clon y proyecto) | código 0 — 16/16 |
+| `npm run test:integration` (proyecto, base local) | código 0 — 17/17 |
+| Lambda aislada invocada con Node 22 | con base → `200 {"status":"ok","db":"ok"}`; con `DB_PORT=5999` → `503 {"status":"degraded","db":"error"}` |
+| `git status` después del build | sin cambios |
+| Rutas de `35a0e89` y `9f0aa9e` | solo rutas del DEV (`infra/`, `package.json`, `package-lock.json`, `.gitignore`, `.prettierignore`, `eslint.config.js`, `informes/DEV-*`) |
+
+La primera tabla de comandos y la sección "Devoluciones" corresponden a la vuelta 1.
 
 ## Cómo se verificó
 
@@ -46,7 +63,7 @@ NO VERIFICADO para que decida el humano. No se abre el PR hasta que el criterio 
 | 7 | Web muestra la salud de la API | 🟢 | `paginaSalud.test.js:44/58/68` en verde; `npm run dev:web` sirve en :5173 (200) |
 | 8 | Runner de pruebas | 🟢 | `npm run test` y `npm run test:integration` → código 0 |
 | 9 | Lint pasa | 🟢 | `npm run lint` → código 0 (`dashboard/` excluido, aclaración 24) |
-| 10 | Build funciona | 🔴 | clon limpio con Node 22: `npm run build` → código 1. El paso `NodejsNpmEsbuildBuilder:NpmUpdate` de `sam build --build-in-source` poda `node_modules` (433 → 47 paquetes) y se pierde `esbuild`. Con Node 26 / npm 12 pasa |
+| 10 | Build funciona | 🟢 (vuelta 2) | `35a0e89`: clon limpio con Node 22, `npm run build` → código 0 y `node_modules` intacto (ver "Vuelta 2"). Vuelta 1 en rojo: clon limpio con Node 22, `npm run build` → código 1. El paso `NodejsNpmEsbuildBuilder:NpmUpdate` de `sam build --build-in-source` poda `node_modules` (433 → 47 paquetes) y se pierde `esbuild`. Con Node 26 / npm 12 pasa |
 | 11 | Logs JSON | 🟢 | `salud.baseDisponible.test.js:64` y `salud.baseNoDisponible.test.js:102` en verde |
 | 12 | Sin valores fijos | 🟢 | las 10 variables (incluida `API_PORT`, aclaración 24) están en `.env.example`. Búsqueda de URLs y credenciales literales en `api/`, `shared/`, `web/src/`, `infra/` y `db/`: solo `api/src/devServer.js:56` (arma la URL con la cabecera `Host`) e `infra/template.yaml:87` (salida `!Sub` de AWS); ninguna es configuración fija. `DbPassword` con `NoEcho` (`infra/template.yaml:22`) |
 | 13 | Cumple el contrato | 🟢 | `salud.baseDisponible.test.js:49` y `salud.baseNoDisponible.test.js:87` validan contra `openapi.yaml` |
@@ -70,7 +87,7 @@ Se revisó `git log 4fef72e..HEAD --name-only`: 22 commits.
 
 | Criterio | A quién | Vuelta | Por qué |
 |---|---|---|---|
-| 10 | **DEV** | 1 | La prueba es un comando de la DoD ("`npm run build` ejecuta `sam build` … sin errores") y la spec fija Node 22 (pregunta 5). El build falla con Node 22 / npm 10 en un clon limpio, porque `NpmUpdate` poda las dependencias del monorepo y se pierde `esbuild`. Debe pasar con Node 22 en un clon limpio, sin dejar `node_modules` podado. |
+| 10 | **DEV** | 1 (resuelta en `35a0e89`) | La prueba es un comando de la DoD ("`npm run build` ejecuta `sam build` … sin errores") y la spec fija Node 22 (pregunta 5). El build falla con Node 22 / npm 10 en un clon limpio, porque `NpmUpdate` poda las dependencias del monorepo y se pierde `esbuild`. Debe pasar con Node 22 en un clon limpio, sin dejar `node_modules` podado. |
 
 ## Observaciones (no son rojos)
 
@@ -93,7 +110,7 @@ Se revisó `git log 4fef72e..HEAD --name-only`: 22 commits.
 | DoD 5, "ejecuta `SELECT 1`" | 🟢 | Código: `api/src/handlers/health.js:5` (`HEALTH_QUERY = 'SELECT 1'`) y `:26` (`getPool().query(HEALTH_QUERY)`). En ejecución: con la API levantada, `pg_stat_activity` de `comparador_dev` muestra la conexión de la API con última consulta `SELECT 1` |
 | DoD 19, nombre y marca por separado | 🟢 | `web/src/components/ProductCard.jsx:8-12`: el nombre va en un `h3` (`product-card__name`) y la marca en otro elemento (`product-card__brand`). Los 12 productos de `web/src/data/searchResultsSample.js` tienen nombre y marca no vacíos y distintos entre sí. La captura de `/buscar` en Chrome los muestra en líneas separadas |
 | Web real contra API real en un navegador | 🟢 | `npm run dev:api` + `npm run dev:web` y Chrome headless (1280×900): `/` muestra "Estado del sistema — API: ok"; `/buscar` muestra "12 productos encontrados para «leche»", 12 tarjetas con "Desde S/ n.nn", "Disponible en N comercios" (N entre 2 y 3) y "Comparar precios". `GET /v1/health` con `Origin: http://localhost:5173` → 200 y `Access-Control-Allow-Origin: http://localhost:5173` |
-| Paquete de la Lambda | 🟢 (local) | El `health.js` generado por `sam build` (199 KB, sin `node_modules`), copiado a una carpeta aislada e invocado con Node 22 y un evento HTTP API 2.0: con base → `200 {"status":"ok","db":"ok"}`; con `DB_PORT=5999` → `503 {"status":"degraded","db":"error"}`. El paquete se generó con Node 26, porque con Node 22 el build falla (criterio 10) |
+| Paquete de la Lambda | 🟢 (local) | El `health.js` generado por `sam build` (199 KB, sin `node_modules`), copiado a una carpeta aislada e invocado con Node 22 y un evento HTTP API 2.0: con base → `200 {"status":"ok","db":"ok"}`; con `DB_PORT=5999` → `503 {"status":"degraded","db":"error"}`. En la vuelta 2 se repitió con el paquete generado con Node 22 (`35a0e89`): mismos resultados |
 
 **Sigue NO VERIFICADO:**
 - **La Lambda desplegada en AWS:** el Sprint 0 no incluye despliegue y no hay cuenta de AWS configurada.
