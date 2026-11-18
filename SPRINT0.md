@@ -49,7 +49,7 @@ Objetivo: un esqueleto que funcione de punta a punta en local, sin lógica de ne
 | Rol | Rutas |
 |---|---|
 | TESTER | `tests/**` (unitarias e integración), `tests/fixtures/**`, `jest.config.js` (raíz), `informes/TESTER-*.md` |
-| DEV | `api/**`, `scraper/**`, `shared/**`, `web/**`, `infra/**`, `db/**`, `package.json`, `package-lock.json`, `.eslintrc*`, `eslint.config.js`, `.prettierrc*`, `.prettierignore`, `.env.example`, `.gitignore`, `informes/DEV-*.md` |
+| DEV | `api/**`, `scraper/**`, `shared/**`, `web/**`, `infra/**`, `db/**`, `package.json`, `package-lock.json`, `.eslintrc*`, `eslint.config.js`, `.prettierrc*`, `.prettierignore`, `.env.example`, `.gitignore`, `.gitattributes`, `informes/DEV-*.md` |
 | Solo LEAD / humano | `AGENTS.md`, `CLAUDE.md`, `.claude/**`, `.agents/**`, `skills-lock.json`, `SPRINT0.md`, `openapi.yaml`, `PRD.md`, `TECH-DESIGN.md`, `adrs/**`, `historias-usuario/**`, `docs/**`, `encargos/**`, `informes/VEREDICTO-*.md` |
 
 > Esta tabla también se copia en `CLAUDE.md` → `## Propiedad de rutas` (no existe `AGENTS.md`).
@@ -199,6 +199,12 @@ igual para TESTER y DEV:
       y la marca basta con que haya texto: sus valores son datos de ejemplo, y su formato real se
       fija en el contrato de HU-03.
 
+Aclaración 25 (2026-11-17, humano):
+
+25. **Fin de línea:** el repositorio fija LF con un `.gitattributes` en la raíz
+    (`* text=auto eol=lf`). Así git no convierte a CRLF en Windows y Prettier (`endOfLine: lf`)
+    no marca los archivos en un clon nuevo. `.gitattributes` es ruta del DEV.
+
 ## 8. Cambios durante el ciclo
 
 | Fecha | Cambio | Aprobado por |
@@ -212,4 +218,5 @@ igual para TESTER y DEV:
 | 2026-10-27 | Aclaraciones 18–20 (creación de la base local, `.env` local y uso de la base) a partir de las dudas del DEV | Humano |
 | 2026-10-27 | Aclaraciones 21–22 (ESLint 9 flat config, lint de todo el repo); `eslint.config.js` y `.prettierignore` al mapa del DEV | Humano |
 | 2026-11-10 | CAMBIO-01: DoD 19 y referencia visual pasan a moneda `S/`; aclaración 23 | Humano |
+| 2026-11-17 | Aclaración 25: `.gitattributes` con fin de línea LF, ruta del DEV | Humano |
 | 2026-11-17 | Aclaración 24: `dashboard/` fuera del proyecto; `API_PORT` en el criterio 12; formato del tamaño en el criterio 19 | Humano (DoD definida por el LEAD por delegación) |
