@@ -77,7 +77,7 @@ Objetivo: un esqueleto que funcione de punta a punta en local, sin lógica de ne
 | 14 | La conexión acepta SSL por configuración (ADR-0003, parte Sprint 0) | prueba unitaria: con `DB_SSL=true` el módulo de conexión pide SSL al cliente PostgreSQL; con `DB_SSL=false` no |
 | 15 | La infraestructura se limita al esqueleto (ADR-0001, parte Sprint 0) | revisión: `infra/template.yaml` declara solo la Lambda de salud y su HTTP API; no hay RDS, SQS, DLQ ni Scheduler; `scraper/` existe como workspace vacío |
 | 16 | Respeta los ADRs transversales | revisión: monorepo con workspaces `api`, `scraper`, `shared`, `web` (ADR-0012); `infra/template.yaml` en SAM (ADR-0009); web en React + Vite (ADR-0008); cliente PostgreSQL (ADR-0002); ruta bajo `/v1` (ADR-0007) — citando archivo:línea |
-| 17 | Cero lógica de negocio | revisión humana: no hay tablas, endpoints, adaptadores ni pantallas de productos, precios, comercios o categorías, **salvo** el maquetado estático de los criterios 18–20 |
+| 17 | ~~Cero lógica de negocio~~ — **Eliminado** por el humano (aclaración 26) | — |
 | 18 | Existe el maquetado estático de "Buscar productos" (HU-03, estado con resultados) | prueba: la ruta `/buscar` de la web muestra un campo de búsqueda con el valor inicial `leche`, un botón con el texto `Buscar`, un selector rotulado `Marca` y otro rotulado `Categoría`, y el texto `12 productos encontrados para «leche»` |
 | 19 | Las tarjetas de resultado muestran los datos de HU-03 | prueba: en `/buscar` hay al menos 3 tarjetas; cada una muestra nombre del producto, marca, un tamaño con el formato `<número> <unidad>` (unidad `g`, `kg`, `ml` o `L`), un precio con el formato `Desde S/ <número con 2 decimales>`, el texto `Disponible en <N> comercios` y un botón `Comparar precios` |
 | 20 | El maquetado es estático | prueba: cargar `/buscar` no hace ninguna petición a `/v1/productos` ni a otra ruta de la API distinta de `/v1/health`; revisión: los datos de ejemplo viven en un único archivo de datos de ejemplo dentro de `web/` |
@@ -205,6 +205,12 @@ Aclaración 25 (2026-11-17, humano):
     (`* text=auto eol=lf`). Así git no convierte a CRLF en Windows y Prettier (`endOfLine: lf`)
     no marca los archivos en un clon nuevo. `.gitattributes` es ruta del DEV.
 
+Aclaración 26 (2026-11-17, humano):
+
+26. **Criterio 17 eliminado:** se quita de la DoD la revisión humana "Cero lógica de negocio". El
+    número 17 queda vacío para no renumerar los criterios 18–20, que las pruebas citan por número.
+    El alcance de la sección 6 ("NO se crea") no cambia.
+
 ## 8. Cambios durante el ciclo
 
 | Fecha | Cambio | Aprobado por |
@@ -220,3 +226,4 @@ Aclaración 25 (2026-11-17, humano):
 | 2026-11-10 | CAMBIO-01: DoD 19 y referencia visual pasan a moneda `S/`; aclaración 23 | Humano |
 | 2026-11-17 | Aclaración 24: `dashboard/` fuera del proyecto; `API_PORT` en el criterio 12; formato del tamaño en el criterio 19 | Humano (DoD definida por el LEAD por delegación) |
 | 2026-11-17 | Aclaración 25: `.gitattributes` con fin de línea LF, ruta del DEV | Humano |
+| 2026-11-17 | Aclaración 26: se elimina el criterio 17 de la DoD | Humano |

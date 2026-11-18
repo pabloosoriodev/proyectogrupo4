@@ -8,10 +8,9 @@
 
 ## Resultado
 
-**🔴 No cumple todavía: 1 rojo (criterio 10), que se devuelve al DEV.** Los otros 19 criterios
-están en verde, aunque el 17 lleva el visto bueno del LEAD y le falta la confirmación del humano
-(ver tabla). Quedan 5 puntos NO VERIFICADO para que decida el humano. No se abre el PR hasta que
-el criterio 10 esté en verde.
+**🔴 No cumple todavía: 1 rojo (criterio 10), que se devuelve al DEV.** Los otros 18 criterios
+vigentes están en verde; el 17 fue eliminado por el humano (aclaración 26). Quedan 4 puntos
+NO VERIFICADO para que decida el humano. No se abre el PR hasta que el criterio 10 esté en verde.
 
 ## Cómo se verificó
 
@@ -54,7 +53,7 @@ el criterio 10 esté en verde.
 | 14 | SSL por configuración | 🟢 | `tests/unit/conexionSsl.test.js:79` en verde |
 | 15 | Infraestructura acotada | 🟢 | `infra/template.yaml:43` (`HttpApi`) y `:46` (`HealthFunction`) son los únicos recursos; sin RDS, SQS, DLQ ni Scheduler; `scraper/` solo tiene `package.json` |
 | 16 | ADRs transversales | 🟢 | workspaces `package.json:9-14` (ADR-0012); SAM `infra/template.yaml` (ADR-0009); React + Vite `web/package.json:13,18` (ADR-0008); `pg` `shared/package.json:12` (ADR-0002); `/v1/health` `infra/template.yaml:68` y `api/src/devServer.js:9` (ADR-0007) |
-| 17 | Cero lógica de negocio | 🟢 (falta confirmación del humano) | migración vacía; un solo endpoint (`api/src/devServer.js:9`); `scraper/` vacío; la web solo tiene `HealthPage.jsx` y `SearchPage.jsx` (maquetado). La DoD pide revisión humana: el humano la confirma |
+| 17 | Eliminado (aclaración 26) | — | El humano quitó el criterio de la DoD |
 | 18 | Maquetado de `/buscar` | 🟢 | `maquetadoBuscar.test.js:172-189` en verde |
 | 19 | Tarjetas con datos de HU-03 | 🟢 | `maquetadoBuscar.test.js:194-224` en verde (precio `S/`, N entre 1 y 3, tamaño `<número> <unidad>`) |
 | 20 | Maquetado estático | 🟢 | `maquetadoBuscar.test.js:233` en verde; el único `fetch` es a `/v1/health` (`web/src/api/healthClient.js:9`); los datos de ejemplo están solo en `web/src/data/searchResultsSample.js` |
@@ -90,11 +89,10 @@ Se revisó `git log 4fef72e..HEAD --name-only`: 22 commits.
 ## NO VERIFICADO (decisión del humano)
 
 1. **DoD 5, "ejecuta `SELECT 1`":** no se observa desde fuera de la API; solo se verifica el 200 y el cuerpo.
-2. **DoD 17:** la evidencia está arriba, pero la DoD exige revisión humana.
-3. **DoD 19, nombre y marca por separado:** aceptado por la aclaración 24 (basta con que haya texto).
-4. **La web real contra la API real en un navegador**, y el CORS en preflight (`OPTIONS`): solo se
+2. **DoD 19, nombre y marca por separado:** aceptado por la aclaración 24 (basta con que haya texto).
+3. **La web real contra la API real en un navegador**, y el CORS en preflight (`OPTIONS`): solo se
    verificaron con pruebas jsdom y con `curl`/HTTP.
-5. **La Lambda en AWS:** no hay despliegue en el Sprint 0, así que no se probó el paquete en Lambda real.
+4. **La Lambda en AWS:** no hay despliegue en el Sprint 0, así que no se probó el paquete en Lambda real.
 
 **Riesgo para decidir:** `npm audit` reporta 2 vulnerabilidades altas en `glob`, solo en dependencias
 de desarrollo (vía Jest y `node-pg-migrate`). Las de producción están limpias
