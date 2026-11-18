@@ -18,6 +18,7 @@
 5. **Umbral configurable:** el nivel mínimo de similitud para agrupar se define por configuración
    y puede ajustarse sin cambiar código.
 6. **Un precio por comercio:** Dado que un comercio tiene dos publicaciones agrupadas como el mismo
-   producto, entonces en la comparación se usa la de menor precio.
+   producto, entonces en la comparación se usa la de menor precio para comparar (oferta si existe,
+   si no regular; PRD RN-7).
 7. **Producto nuevo:** Dado un producto que no supera el umbral con ningún grupo existente,
    entonces se crea un grupo nuevo.

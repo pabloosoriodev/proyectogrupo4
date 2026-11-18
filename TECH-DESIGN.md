@@ -81,14 +81,16 @@ lo que cada publicación guarda **solo su último precio** conocido.
 | `comercio` | `id`, `slug` (único), `nombre`, `activo` | Datos para mostrar y relacionar. La configuración de scraping (URL, tipo de adaptador, límites) vive en Parameter Store bajo el mismo `slug` (ADR 0010). |
 | `categoria` | `id`, `nombre`, `nombre_normalizado` (único) | Alimenta el filtro de HU-03. |
 | `producto_grupo` | `id`, `nombre_display`, `marca_normalizada`, `tamano_valor`, `tamano_unidad` (ml / g / u), `resto_normalizado`, `categoria_id` | Producto "lógico" agrupado (ADR 0005). Índice sobre (`marca_normalizada`, `tamano_valor`, `tamano_unidad`) e índice GIN de trigramas sobre el texto normalizado (ADR 0005 y 0006). |
-| `publicacion` | `id`, `comercio_id`, `grupo_id`, `nombre_original`, `nombre_normalizado`, `marca`, `categoria_origen`, `url`, `precio` (numeric), `fecha_captura` | Un producto tal como lo publica un comercio. Único por (`comercio_id`, `url`). Un comercio que falla no modifica sus filas (ADR 0011). |
+| `publicacion` | `id`, `comercio_id`, `grupo_id`, `nombre_original`, `nombre_normalizado`, `marca`, `categoria_origen`, `url`, `precio_regular` (numeric), `precio_oferta` (numeric, nulo), `fecha_captura` | Un producto tal como lo publica un comercio. Único por (`comercio_id`, `url`). Un comercio que falla no modifica sus filas (ADR 0011). Precios en soles (PRD RN-1). |
 
 Relaciones: `comercio 1─N publicacion N─1 producto_grupo N─1 categoria`.
 
 Valores derivados (no se guardan):
 
-- `precioMin` y `cantidadComercios` de un grupo: el mínimo y el conteo de comercios distintos
-  entre sus publicaciones. Si un comercio tiene varias publicaciones del grupo, cuenta la de menor
+- `precioComparacion` de una publicación: `precio_oferta` si existe, si no `precio_regular`
+  (PRD RN-7).
+- `precioMin` y `cantidadComercios` de un grupo: el mínimo de `precioComparacion` y el conteo de
+  comercios distintos entre sus publicaciones. Si un comercio tiene varias publicaciones del grupo, cuenta la de menor
   precio (PRD Supuesto 3, HU-02).
 - `actualizadoHoy`: `false` cuando `fecha_captura` tiene más de 24 horas (PRD Supuesto 2).
 
@@ -106,7 +108,7 @@ Todos viven en Parameter Store (ADR 0010) y se ajustan con datos reales sin camb
 | Resultados por página | 20 |
 | Intentos totales por comercio (`maxReceiveCount`) | 3 (1 intento + 2 reintentos) |
 | Retención de la DLQ | 14 días |
-| Horario del scraping | por definir al configurar los comercios |
+| Horario del scraping | 06:00, hora del Perú (PRD RN-5) |
 
 ## Criterios de aceptación por flujo
 
@@ -177,13 +179,12 @@ Todos viven en Parameter Store (ADR 0010) y se ajustan con datos reales sin camb
 
 ## Riesgos técnicos abiertos
 
-- **Legalidad del scraping (PRD, Punto abierto 4):** cada web debe revisarse antes de crear su
-  adaptador. Bloquea agregar comercios, no el esqueleto.
-- **Comercios iniciales sin definir (PRD, Punto abierto 3):** hasta saberlos no se sabe cuántos
-  necesitan el modo `browser` (ADR 0004), que es el más caro y frágil.
-- **País, moneda y distancia (PRD, Puntos abiertos 1 y 2):** el modelo no incluye país, moneda ni
-  ubicación de los comercios. Resolver esos puntos implicará nuevas columnas, migraciones y
-  probablemente nuevas ADRs.
+- **Legalidad del scraping (riesgo aceptado, PRD RN-6):** no se revisan los términos de uso de
+  Wong, Plaza Vea y Metro.
+- **Modo de adaptador por comercio (ADR 0004):** falta saber si alguna de las tres webs necesita
+  el modo `browser`, el más caro y frágil.
+- **Distancia (PRD, Punto abierto 1):** el modelo no incluye la ubicación de los comercios. País y
+  moneda quedan resueltos por RN-1 (Perú, soles, sin columnas).
 - **Vencimiento del free tier de RDS (ADR 0002):** después de los créditos o los 12 meses cuesta
   aprox. 15 USD/mes. Hay que decidir antes si se paga o se migra a Neon o Supabase.
 - **Base de datos expuesta a internet sin rotación automática de contraseñas (ADR 0003 y 0010):**

@@ -16,7 +16,8 @@
    de esa categoría.
 5. **Tolerancia:** la búsqueda ignora mayúsculas y tildes ("azucar" encuentra "Azúcar").
 6. **Resultados agrupados:** cada resultado es un producto (agrupado según HU-02) y muestra su
-   precio más bajo y en cuántos comercios está disponible.
+   precio más bajo en soles (precio para comparar, PRD RN-7) y en cuántos comercios está
+   disponible.
 7. **Sin resultados:** Dado que no hay coincidencias, entonces se muestra un mensaje claro
    indicándolo.
 8. **Validación:** Dado un término vacío o de menos de 2 caracteres, entonces no se ejecuta la

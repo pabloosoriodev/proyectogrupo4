@@ -2,7 +2,7 @@
 
 ## Estado
 
-Aceptado
+Aceptado — modificado el 2026-11-10 por CAMBIO-01 (PRD v1.2)
 
 ## Contexto
 
@@ -21,7 +21,8 @@ Endpoints del MVP:
 - `GET /v1/productos?q=&marca=&categoria=&page=` → lista de productos agrupados
   `{ id, nombre, marca, tamaño, precioMin, cantidadComercios }`.
 - `GET /v1/productos/{id}/precios` → precios por comercio ordenados de menor a mayor
-  `{ comercio, precio, url, fechaCaptura, actualizadoHoy }`.
+  `{ comercio, precioRegular, precioOferta, url, fechaCaptura, actualizadoHoy }`, ordenados por
+  precio para comparar (PRD RN-7). Precios en soles.
 - `GET /v1/categorias` → `{ id, nombre }`.
 
 El dueño del contrato es el equipo de construcción vía el LEAD; cualquier cambio pasa primero
@@ -45,3 +46,9 @@ por `openapi.yaml`.
   contrato pierde valor y genera falsos verdes o rojos.
 - Las funciones de comercios, administradores y soporte (promociones, usuarios, quejas) no forman
   parte de este contrato; requerirán endpoints autenticados en una decisión futura.
+
+## Registro de cambios
+
+| Fecha | Cambio | Decidido por |
+|---|---|---|
+| 2026-11-10 | Precios por comercio con `precioRegular` y `precioOferta`, ordenados por precio para comparar, en soles (CAMBIO-01) | Humano (pabloosoriodev) |

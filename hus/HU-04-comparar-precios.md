@@ -8,8 +8,9 @@
 
 ## Criterios de aceptación
 1. **Lista de precios:** Dado que selecciono un producto de los resultados, entonces veo cada
-   comercio que lo vende con su precio.
-2. **Orden:** los comercios aparecen ordenados del precio más bajo al más alto.
+   comercio que lo vende con su precio en soles. Si tiene oferta, veo el precio de oferta y, al
+   lado, el regular tachado (PRD RN-7).
+2. **Orden:** los comercios aparecen ordenados del precio para comparar más bajo al más alto.
 3. **Más barato destacado:** el comercio con el precio más bajo se resalta visualmente.
 4. **Fecha del precio:** cada precio muestra la fecha en que se obtuvo.
 5. **Precio no actualizado:** Dado un precio con más de 24 horas de antigüedad, entonces se muestra

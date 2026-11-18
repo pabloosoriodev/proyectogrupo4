@@ -11,7 +11,8 @@ obtener precios → reconocer el mismo producto → buscar → comparar.
 | HU-04 | [Comparar precios de un producto entre comercios](HU-04-comparar-precios.md)              | Consumidor              | HU-02, HU-03 |
 
 ## Pendientes para próximas HUs
-- Filtros por país y distancia en km (bloqueados por los puntos abiertos 1 y 2 del PRD).
+- Filtro por distancia en km (bloqueado por el punto abierto 1 del PRD). No hay filtro por país
+  (PRD RN-1).
 - Filtros y ordenamiento adicionales en resultados.
 - Registro de promociones (comercios).
 - Registro de usuarios (comercio, administrador, soporte).
