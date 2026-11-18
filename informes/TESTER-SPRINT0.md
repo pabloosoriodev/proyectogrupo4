@@ -1,7 +1,7 @@
-# Informe TESTER — Sprint 0 (entrega 2)
+# Informe TESTER — Sprint 0 (entrega 3)
 
 **Rama:** `chore/sprint0` · **Fecha:** 2026-11-17 · **Fuentes:** `SPRINT0.md` (Aprobado, con
-aclaraciones 11–23 y criterios 18–20), `openapi.yaml` (0.1.0-sprint0),
+aclaraciones 11–24 y criterios 18–20), `openapi.yaml` (0.1.0-sprint0),
 `encargos/ENCARGO-TESTER-SPRINT0.md`
 
 Pruebas de caja negra escritas contra la DoD, las aclaraciones y `openapi.yaml`, sin leer las rutas del
@@ -9,24 +9,29 @@ DEV. La API se ejercita con su comando observable (`npm run dev:api`) por HTTP; 
 `web/index.html`, navegando a la ruta y ejecutando su script de entrada, con una API falsa detrás de
 `VITE_API_URL`.
 
-**Cambios respecto a la entrega 1 (`3c32091`):**
+**Historial de entregas:**
 
-- Aclaración 14: nuevas pruebas de CORS en 200 y 503.
-- Aclaración 15: nuevas pruebas de `requestId` distinto por invocación, con base y sin base.
-- Criterios 18–20: nuevo `tests/web/maquetadoBuscar.test.js`, con moneda `S/` y N entre 1 y 3
-  (aclaración 23 / CAMBIO-01).
-- Aclaración 22: `tests/**` y `jest.config.js` pasan ESLint y Prettier.
-- Arnés: el lanzador de la API ya no dispara el aviso `DEP0190` de Node en Windows.
+- Entrega 1 (`3c32091`): DoD 5–8, 11, 13 y 14, sin ejecutar.
+- Entrega 2 (`e343875`):
+  - CORS (aclaración 14) y `requestId` distinto por invocación (aclaración 15).
+  - Criterios 18–20 con moneda `S/` y N entre 1 y 3 (aclaración 23).
+  - Lint de `tests/**` (aclaración 22).
+  - El lanzador de la API ya no dispara el aviso `DEP0190` de Node en Windows.
+- Entrega 3 (esta, aclaración 24):
+  - DoD 19: nueva prueba del tamaño con formato `<número> <unidad>` (unidad `g`, `kg`, `ml` o `L`).
+  - Las tarjetas se leen nodo por nodo, porque `textContent` pega elementos vecinos
+    (`Gloria` + `400 g` → `Gloria400 g`).
+  - `API_PORT` (criterio 12): el arnés lo fija al puerto del contrato, para que la API escuche donde la
+    prueba la busca aunque `.env` diga otra cosa.
+  - `dashboard/` queda fuera del proyecto: no se cuenta en el lint ni en este informe.
 
 ## Resultado de la ejecución (2026-11-17, Windows, Node 22.23.4, PostgreSQL 16 local)
 
 | Comando | Resultado |
 |---|---|
-| `npm run test` (`unit` + `web`) | **código 0** — 3 suites, 15 pruebas, todas en verde |
-| `npm run test:integration` | **código 0** — 2 suites, 17 pruebas, todas en verde (contra `comparador_dev`) |
-| `npx eslint tests jest.config.js` | código 0 |
-| `npx prettier --check tests jest.config.js` | código 0 |
-| `npm run lint` (todo el repo) | primera corrida: código 1, por un único error en `dashboard/estado.js:1:1`, fuera de las rutas del TESTER (ver pregunta 1). **Tras excluir `dashboard/**` del lint: código 0** (ESLint sin errores y `prettier --check .` en verde) |
+| `npm run test` (`unit` + `web`) | **código 0**: 3 suites, 16 pruebas, todas en verde |
+| `npm run test:integration` | **código 0**: 2 suites, 17 pruebas, todas en verde (contra `comparador_dev`) |
+| `npm run lint` (todo el repo, sin `dashboard/`) | **código 0**: ESLint sin errores y `prettier --check .` en verde |
 
 ## Criterio de la DoD → prueba
 
@@ -42,7 +47,7 @@ DEV. La API se ejercita con su comando observable (`npm run dev:api`) por HTTP; 
 | 13 | Respuestas 200 y 503 validan contra `openapi.yaml` | `[DoD 13]` en ambos archivos de integración (`HealthOk` / `HealthDegraded`, Ajv 2020) | integration | VERDE |
 | 14 | `DB_SSL=true` pide SSL; `DB_SSL=false` no | `tests/unit/conexionSsl.test.js` — `[DoD 14]` (PostgreSQL falso que registra `SSLRequest` vs `StartupMessage`) | unit | VERDE |
 | 18 | `/buscar`: campo con `leche`, botón `Buscar`, selectores rotulados `Marca` y `Categoría`, texto `12 productos encontrados para «leche»` | `tests/web/maquetadoBuscar.test.js` — `[DoD 18]` (5 pruebas; rótulos por nombre accesible: `<label>`, `aria-label` o `aria-labelledby`) | web | VERDE |
-| 19 | ≥ 3 tarjetas con nombre, marca, tamaño, `Desde S/ <n.nn>`, `Disponible en <N> comercios` (N 1–3) y `Comparar precios` | `tests/web/maquetadoBuscar.test.js` — `[DoD 19]` (4 pruebas) | web | VERDE (nombre, marca y tamaño: ver NO VERIFICADO) |
+| 19 | ≥ 3 tarjetas con nombre, marca, tamaño `<número> <unidad>`, `Desde S/ <n.nn>`, `Disponible en <N> comercios` (N 1–3) y `Comparar precios` | `tests/web/maquetadoBuscar.test.js` — `[DoD 19]` (5 pruebas: tarjetas, precio, disponibilidad, tamaño, texto de nombre y marca) | web | VERDE |
 | 20 | `/buscar` no pide `/v1/productos` ni otra ruta de la API distinta de `/v1/health` | `tests/web/maquetadoBuscar.test.js` — `[DoD 20]` (espía `fetch`/`XMLHttpRequest` + registro de la API falsa) | web | VERDE (parte prueba) |
 
 Los demás criterios (1–4, 9, 10, 12, 15–17 y la parte "revisión" del 20) no están en mi encargo: se
@@ -52,24 +57,26 @@ verifican por comando o revisión.
 
 - `jest.config.js`: proyectos `unit`, `web` (jsdom + `fetch`) e `integration`, con los nombres que fija
   la aclaración 16, y `maxWorkers: 1`.
-- `tests/fixtures/contrato.js`: nombres y valores textuales de la DoD, las aclaraciones y `openapi.yaml`.
+- `tests/fixtures/contrato.js`: nombres, valores y formatos textuales de la DoD, las aclaraciones y
+  `openapi.yaml`.
 - `tests/fixtures/red.js`: puerto cerrado, host sin respuesta (RFC 5737) y credenciales ficticias.
 - `tests/fixtures/entornoJsdomConFetch.js`, `estiloVacio.js` y `archivoVacio.js`: soporte del proyecto
   `web`.
-- `tests/helpers/apiLocal.js`: levanta y detiene `npm run dev:api`, pide `GET /v1/health` (con
-  `Origin`), y lee los logs y sus `requestId`.
-- `tests/helpers/paginaWeb.js` (nuevo): abre una ruta de la web, monta la API falsa y espía la red.
+- `tests/helpers/apiLocal.js`: levanta y detiene `npm run dev:api` (con `API_PORT` fijado al puerto del
+  contrato), pide `GET /v1/health` (con `Origin`), y lee los logs y sus `requestId`.
+- `tests/helpers/paginaWeb.js`: abre una ruta de la web, monta la API falsa, espía la red y lee el texto
+  nodo por nodo.
 - Pruebas:
   - `tests/unit/conexionSsl.test.js`
   - `tests/web/paginaSalud.test.js`
-  - `tests/web/maquetadoBuscar.test.js` (nueva)
+  - `tests/web/maquetadoBuscar.test.js`
   - `tests/integration/salud.baseDisponible.test.js`
   - `tests/integration/salud.baseNoDisponible.test.js`
 
 ## Cómo se corren
 
 Antes de correr: **ningún `npm run dev:api` levantado**, porque el arnés lo arranca y lo apaga solo y
-falla si el puerto 3000 está ocupado. Para integración, además, PostgreSQL local arriba
+falla si el puerto del contrato (3000) está ocupado. Para integración, además, PostgreSQL local arriba
 (`npm run db:check` en verde).
 
 ```
@@ -90,9 +97,9 @@ Variables opcionales del arnés (solo pruebas):
 
 - **DoD 5, "ejecuta `SELECT 1`":** no es observable desde fuera de la API. La prueba verifica el 200 y
   el cuerpo exacto, no la consulta.
-- **DoD 19, nombre, marca y tamaño por separado:** la DoD no fija sus valores ni su formato. La prueba
-  solo exige que cada tarjeta tenga texto propio además del precio, la disponibilidad y el botón. No
-  distingue si están los tres datos (ver pregunta 2).
+- **DoD 19, nombre y marca por separado:** según la aclaración 24 basta con que haya texto. La prueba
+  exige texto propio en cada tarjeta además de precio, tamaño, disponibilidad y botón, pero no distingue
+  el nombre de la marca.
 - **DoD 20, peticiones a la API por otros medios:** solo se observan `fetch` y `XMLHttpRequest`, que es
   lo que usa una SPA. La parte "revisión" (los datos de ejemplo en un único archivo de `web/`) no es mía.
 - **DoD 7, parte "comando"** (`npm run dev:web` sirve en `http://localhost:5173`) y la web real contra la
@@ -100,16 +107,10 @@ Variables opcionales del arnés (solo pruebas):
 - **CORS en preflight (`OPTIONS`):** la aclaración 14 habla de la cabecera de la respuesta. Se verifica
   en el `GET` (que, sin cabeceras propias, el navegador manda sin preflight), no en `OPTIONS`.
 
-## Preguntas para el LEAD (lo que `SPRINT0.md` no dice; no lo decidí)
+## Preguntas para el LEAD
 
-1. **Resuelta (LEAD, 2026-11-17):** el humano excluyó `dashboard/**` del lint y esa ruta pasa al LEAD.
-   `npm run lint` vuelve a correr con código 0. Pregunta original: **`npm run lint` (DoD 9) falla fuera
-   de las rutas de TESTER y DEV.** El único error está en
-   `dashboard/estado.js:1:1` (`'window' is not defined`, `no-undef`). `dashboard/**` no aparece en el
-   mapa de rutas, así que no lo toqué. Además, como el script es `eslint . && prettier --check .`, el
-   `prettier --check` de todo el repo no llega a correr mientras ESLint falle. ¿A quién se asigna
-   `dashboard/**`, o se excluye del lint?
-2. **Pendiente (el LEAD la llevó al humano; la prueba queda como está y el punto sigue NO
-   VERIFICADO).** **DoD 19, nombre, marca y tamaño:** ¿hay un formato o valores que la prueba deba exigir (por ejemplo,
-   que la marca de cada tarjeta sea una de las opciones del selector `Marca`, o un patrón de tamaño como
-   `1 L` / `400 g`)? Sin eso, la prueba no puede distinguirlos.
+Ninguna abierta. Las dos de la entrega 2 quedaron resueltas por la aclaración 24:
+
+- `dashboard/` queda fuera del proyecto, del lint y del veredicto.
+- El tamaño del DoD 19 se verifica con el formato `<número> <unidad>`; el nombre y la marca solo con
+  que haya texto.

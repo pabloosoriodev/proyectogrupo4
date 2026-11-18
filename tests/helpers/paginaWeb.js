@@ -110,6 +110,17 @@ function textoDe(elemento = document.body) {
   return normalizar(elemento.textContent);
 }
 
+/**
+ * Como `textoDe`, pero separa con un espacio el texto de cada nodo: `textContent` pega elementos
+ * vecinos (`Gloria` + `400 g` → `Gloria400 g`) aunque en pantalla se vean separados.
+ */
+function textoPorNodos(elemento) {
+  const recorrido = document.createTreeWalker(elemento, NodeFilter.SHOW_TEXT);
+  const partes = [];
+  while (recorrido.nextNode()) partes.push(recorrido.currentNode.nodeValue);
+  return normalizar(partes.join(' '));
+}
+
 async function esperarCondicion(condicion, timeoutMs = ESPERA_TEXTO_MS) {
   const limite = Date.now() + timeoutMs;
   while (Date.now() < limite) {
@@ -134,6 +145,7 @@ module.exports = {
   cerrarPagina,
   normalizar,
   textoDe,
+  textoPorNodos,
   esperarCondicion,
   esperarTexto,
   esperar,

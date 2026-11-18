@@ -84,7 +84,14 @@ async function iniciarApi(entornoExtra = {}) {
     ES_WINDOWS ? [] : ['run', 'dev:api'],
     {
       cwd: RAIZ_REPO,
-      env: { ...leerDotEnv(), ...process.env, ...entornoExtra },
+      // API_PORT (aclaración 24) se fija al puerto del contrato para que la API escuche donde la
+      // prueba la busca, aunque `.env` diga otra cosa.
+      env: {
+        ...leerDotEnv(),
+        ...process.env,
+        API_PORT: String(destino.port),
+        ...entornoExtra,
+      },
       shell: ES_WINDOWS,
       detached: !ES_WINDOWS,
       stdio: ['ignore', 'pipe', 'pipe'],

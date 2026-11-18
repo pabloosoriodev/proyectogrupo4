@@ -41,6 +41,8 @@ const TEXTO_RESULTADOS = '12 productos encontrados para «leche»';
 const MINIMO_TARJETAS = 3;
 const FORMATO_PRECIO = /Desde S\/ \d+\.\d{2}(?!\d)/;
 const FORMATO_DISPONIBILIDAD = /Disponible en (\d+) comercios/;
+// Aclaración 24: tamaño `<número> <unidad>` con unidad g, kg, ml o L (p. ej. `400 g`, `1 L`).
+const FORMATO_TAMANO = /(?<![\w.,])\d+(?:[.,]\d+)? (?:g|kg|ml|L)(?![\p{L}\d])/u;
 const COMERCIOS_MIN = 1;
 const COMERCIOS_MAX = 3;
 const TEXTO_BOTON_COMPARAR = 'Comparar precios';
@@ -108,6 +110,7 @@ module.exports = {
   MINIMO_TARJETAS,
   FORMATO_PRECIO,
   FORMATO_DISPONIBILIDAD,
+  FORMATO_TAMANO,
   COMERCIOS_MIN,
   COMERCIOS_MAX,
   TEXTO_BOTON_COMPARAR,

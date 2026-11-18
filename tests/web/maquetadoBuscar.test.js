@@ -25,6 +25,7 @@ const {
   MINIMO_TARJETAS,
   FORMATO_PRECIO,
   FORMATO_DISPONIBILIDAD,
+  FORMATO_TAMANO,
   COMERCIOS_MIN,
   COMERCIOS_MAX,
   TEXTO_BOTON_COMPARAR,
@@ -38,6 +39,7 @@ const {
   cerrarPagina,
   normalizar,
   textoDe,
+  textoPorNodos,
   esperarCondicion,
   esperar,
 } = require('../helpers/paginaWeb');
@@ -119,16 +121,17 @@ function tarjetasDeResultado() {
 
 /** Lo que verifica el criterio 19 sobre una tarjeta, en un objeto fácil de leer si falla. */
 function revisarTarjeta(tarjeta) {
-  const texto = textoDe(tarjeta);
+  const texto = textoPorNodos(tarjeta);
   const precio = texto.match(FORMATO_PRECIO);
   const disponibilidad = texto.match(FORMATO_DISPONIBILIDAD);
   const comercios = disponibilidad ? Number(disponibilidad[1]) : null;
+  // El tamaño se busca después de quitar precio y disponibilidad, para no confundirlo con sus números.
+  const sinPrecioNiDisponibilidad = texto
+    .replace(FORMATO_PRECIO, ' ')
+    .replace(FORMATO_DISPONIBILIDAD, ' ');
+  const tamano = sinPrecioNiDisponibilidad.match(FORMATO_TAMANO);
   const textoRestante = normalizar(
-    texto
-      .replace(FORMATO_PRECIO, ' ')
-      .replace(FORMATO_DISPONIBILIDAD, ' ')
-      .split(TEXTO_BOTON_COMPARAR)
-      .join(' '),
+    sinPrecioNiDisponibilidad.replace(FORMATO_TAMANO, ' ').split(TEXTO_BOTON_COMPARAR).join(' '),
   );
   return {
     texto,
@@ -137,6 +140,7 @@ function revisarTarjeta(tarjeta) {
     comerciosEnRango:
       comercios !== null && comercios >= COMERCIOS_MIN && comercios <= COMERCIOS_MAX,
     botonesComparar: botonesConTexto(TEXTO_BOTON_COMPARAR, tarjeta).length,
+    tieneTamano: Boolean(tamano),
     tieneTextoDeProducto: textoRestante.length > 0,
   };
 }
@@ -210,7 +214,14 @@ describe('maquetado estático de /buscar', () => {
       expect(revisiones.filter((revision) => !revision.comerciosEnRango)).toEqual([]);
     });
 
-    test('cada tarjeta tiene texto propio además de precio, disponibilidad y botón (nombre, marca, tamaño)', () => {
+    test('cada tarjeta muestra un tamaño "<número> <unidad>" con unidad g, kg, ml o L (aclaración 24)', () => {
+      const revisiones = tarjetasDeResultado().map(revisarTarjeta);
+
+      expect(revisiones.length).toBeGreaterThanOrEqual(MINIMO_TARJETAS);
+      expect(revisiones.filter((revision) => !revision.tieneTamano)).toEqual([]);
+    });
+
+    test('cada tarjeta tiene texto propio además de precio, tamaño, disponibilidad y botón (nombre y marca)', () => {
       const revisiones = tarjetasDeResultado().map(revisarTarjeta);
 
       expect(revisiones.length).toBeGreaterThanOrEqual(MINIMO_TARJETAS);
