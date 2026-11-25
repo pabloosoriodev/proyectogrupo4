@@ -19,10 +19,15 @@ function buildConnectionConfig(dbConfig = getDbConfig()) {
   };
 }
 
-function createPool(dbConfig = getDbConfig()) {
+// `maxConnections` solo para procesos locales que atienden varios comercios a la vez
+// (`npm run scrape:local`); en Lambda se usa el valor por defecto.
+function createPool(
+  dbConfig = getDbConfig(),
+  { maxConnections = MAX_CONNECTIONS_PER_INSTANCE } = {},
+) {
   const pool = new Pool({
     ...buildConnectionConfig(dbConfig),
-    max: MAX_CONNECTIONS_PER_INSTANCE,
+    max: maxConnections,
   });
   // Sin este listener, un cliente inactivo que pierde la conexión derriba el proceso.
   pool.on('error', (error) => {

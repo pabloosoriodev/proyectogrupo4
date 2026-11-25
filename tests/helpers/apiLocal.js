@@ -236,6 +236,8 @@ function requestIdsRepetidos(invocaciones) {
 }
 
 module.exports = {
+  leerDotEnv,
+  registrosJson,
   iniciarApi,
   pedirSalud,
   esperarLogsDesde,

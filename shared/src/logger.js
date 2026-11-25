@@ -22,9 +22,15 @@ function write(level, message, fields = {}) {
   console[level](JSON.stringify(entry));
 }
 
-module.exports = {
-  info: (message, fields) => write('info', message, fields),
-  warn: (message, fields) => write('warn', message, fields),
-  error: (message, fields) => write('error', message, fields),
-  serializeError,
-};
+// Logger con campos fijos en cada línea (p. ej. `ejecucionId` y `comercio` en HU-01).
+function createLogger(baseFields = {}) {
+  return {
+    info: (message, fields) => write('info', message, { ...baseFields, ...fields }),
+    warn: (message, fields) => write('warn', message, { ...baseFields, ...fields }),
+    error: (message, fields) => write('error', message, { ...baseFields, ...fields }),
+    child: (fields) => createLogger({ ...baseFields, ...fields }),
+    serializeError,
+  };
+}
+
+module.exports = createLogger();

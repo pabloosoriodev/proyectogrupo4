@@ -2,5 +2,5 @@
   "name": "@proyectogrupo4/scraper",
   "version": "0.1.0",
   "private": true,
-  "description": "Pipeline de scraping (orquestador + adaptadores por comercio). Vacío hasta HU-01."
+  "description": "Pipeline de scraping de HU-01: orquestador, scraper y adaptador VTEX (ADR-0001, ADR-0004)."
 }
