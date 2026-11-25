@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estado del proyecto</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#16202c;--mute:#5b6776;--line:#dfe3e9;--ok:#1b8a4b;--okbg:#e3f4ea;--warn:#b86e00;--warnbg:#fff1d6;--bad:#c0392b;--badbg:#fde5e2;--info:#2458c6;--infobg:#e4ecfb;--idle:#6b7686;--idlebg:#eceff3}
+@media (prefers-color-scheme:dark){:root{--bg:#12161c;--card:#1b212a;--ink:#e8ecf2;--mute:#9aa6b6;--line:#2c3542;--ok:#4cc57f;--okbg:#17352480;--warn:#f0b24a;--warnbg:#3b2d10;--bad:#ff7b6b;--badbg:#3d1c19;--info:#7aa5ff;--infobg:#1a2a4a;--idle:#9aa6b6;--idlebg:#252d38}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:26px;margin:0 0 4px}
+h2{font-size:17px;margin:28px 0 10px}
+.sub{color:var(--mute);margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.grid{display:grid;gap:12px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.kpi .n{font-size:32px;font-weight:700;line-height:1.1}
+.kpi .l{color:var(--mute);font-size:13px}
+.bar{height:12px;background:var(--idlebg);border-radius:6px;overflow:hidden;margin:8px 0 2px}
+.bar i{display:block;height:100%}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.t-ok{background:var(--okbg);color:var(--ok)}.t-warn{background:var(--warnbg);color:var(--warn)}.t-bad{background:var(--badbg);color:var(--bad)}.t-info{background:var(--infobg);color:var(--info)}.t-idle{background:var(--idlebg);color:var(--idle)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mute);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.scroll{overflow-x:auto}
+a{color:var(--info)}
+.nv{color:var(--bad);font-weight:700}
+.alert{border-left:4px solid var(--warn);background:var(--warnbg);padding:10px 14px;border-radius:8px;margin:8px 0}
+.rub{display:flex;flex-direction:column;gap:6px}
+.rub h3{margin:0;font-size:15px}
+ul{margin:6px 0 0;padding-left:18px}
+.foot{color:var(--mute);font-size:12px;margin-top:28px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><p>Cargando… Si ves esto, falta el archivo <b>estado.js</b> junto a este archivo.</p></div>
+<script src="estado.js"></script>
+<script>
+(function(){
+var E=window.ESTADO; var app=document.getElementById("app");
+if(!E){app.innerHTML="<p class='nv'>No se encontró estado.js. Ejecuta /dashboard para generarlo.</p>";return;}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]});}
+function link(t,u){return u?'<a href="'+esc(u)+'" target="_blank" rel="noopener">'+esc(t)+'</a>':esc(t)}
+function nv(){return '<span class="nv">NO VERIFICADO</span>'}
+var hus=E.hus||[];
+function probado(h){return h.estado==="Hecho"&&h.pr&&h.pr.estado==="fusionado"&&h.veredicto==="verde"&&!(h.noVerificado>0)}
+function dice_hecho_sin_prueba(h){return h.estado==="Hecho"&&!probado(h)}
+var total=hus.length, hechas=hus.filter(function(h){return h.estado==="Hecho"}).length, prob=hus.filter(probado).length;
+var enCurso=hus.filter(function(h){return h.estado==="En curso"||h.estado==="En revisión"}).length;
+var bloq=hus.filter(function(h){return h.estado==="Bloqueado"||(h.bloqueadaPor&&h.bloqueadaPor.length)}).length;
+var pctDecl=total?Math.round(100*hechas/total):0, pctProb=total?Math.round(100*prob/total):0;
+var hoy=new Date(); hoy.setHours(0,0,0,0);
+var dd=E.proyecto&&E.proyecto.demoDay?new Date(E.proyecto.demoDay+"T00:00:00"):null;
+var dias=dd?Math.ceil((dd-hoy)/86400000):null;
+function tagEstado(s){var m={"Hecho":"t-ok","En curso":"t-info","En revisión":"t-info","Por hacer":"t-idle","Bloqueado":"t-bad"};return '<span class="tag '+(m[s]||"t-idle")+'">'+esc(s)+'</span>'}
+function tagPR(p){if(!p||p.estado==="ninguno"||!p.estado)return '<span class="tag t-idle">sin PR</span>';var m={"fusionado":"t-ok","abierto":"t-info","borrador":"t-warn"};var t='PR '+(p.numero?'#'+p.numero+' ':'')+p.estado;return '<span class="tag '+(m[p.estado]||"t-idle")+'">'+(p.url?link(t,p.url):esc(t))+'</span>'}
+function tagVer(v){var m={"verde":["t-ok","veredicto verde"],"rojo":["t-bad","veredicto rojo"],"parcial":["t-warn","veredicto parcial"]};var x=m[v];return x?'<span class="tag '+x[0]+'">'+x[1]+'</span>':'<span class="tag t-idle">sin veredicto</span>'}
+var h="";
+h+='<h1>'+esc((E.proyecto&&E.proyecto.nombre)||"Proyecto")+' · Estado del proyecto</h1>';
+h+='<p class="sub">Actualizado el '+esc(E.proyecto&&E.proyecto.fecha)+(E.proyecto&&E.proyecto.fuentesUsadas?' · Fuentes: '+esc(E.proyecto.fuentesUsadas):'')+'</p>';
+// KPIs
+h+='<div class="grid g4" style="margin-top:16px">';
+h+='<div class="card kpi"><div class="n">'+(dias==null?"–":dias)+'</div><div class="l">días al Demo Day'+(E.proyecto&&E.proyecto.demoDay?' ('+esc(E.proyecto.demoDay)+')':'')+'</div></div>';
+h+='<div class="card kpi"><div class="n">'+pctProb+'%</div><div class="l">avance PROBADO ('+prob+' de '+total+' HU con PR fusionado, veredicto verde y sin NO VERIFICADO)</div><div class="bar"><i style="width:'+pctProb+'%;background:var(--ok)"></i></div></div>';
+h+='<div class="card kpi"><div class="n">'+pctDecl+'%</div><div class="l">avance DECLARADO ('+hechas+' de '+total+' HU marcadas Hecho)</div><div class="bar"><i style="width:'+pctDecl+'%;background:var(--info)"></i></div></div>';
+h+='<div class="card kpi"><div class="n">'+enCurso+' · '+bloq+'</div><div class="l">en curso · bloqueadas</div></div>';
+h+='</div>';
+var alertas=hus.filter(dice_hecho_sin_prueba);
+if(alertas.length){h+='<div class="alert"><b>Dice Hecho pero no lo prueba:</b> '+alertas.map(function(x){return esc(x.id)}).join(", ")+'. Falta PR fusionado, veredicto verde o hay NO VERIFICADO abierto.</div>'}
+if(total&&pctDecl!==pctProb){h+='<p class="sub">La diferencia entre declarado y probado es lo que el jurado vería como «afirmado, no demostrado».</p>'}
+// HUs
+h+='<h2>Historias de usuario</h2><div class="card scroll"><table><thead><tr><th>HU</th><th>Título</th><th>Estado</th><th>Prueba</th><th>Fuente</th></tr></thead><tbody>';
+hus.forEach(function(x){
+ var bl=(x.bloqueadaPor&&x.bloqueadaPor.length)?'<div><span class="tag t-bad">bloqueada por '+esc(x.bloqueadaPor.join(", "))+'</span></div>':'';
+ var fuente=x.claveJira?link(x.claveJira,x.urlJira):(x.urlJira?link("fuente",x.urlJira):nv());
+ h+='<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.titulo)+bl+'</td><td>'+tagEstado(x.estado)+'</td><td>'+tagPR(x.pr)+' '+tagVer(x.veredicto)+(x.noVerificado>0?' <span class="nv">'+x.noVerificado+' NO VERIFICADO</span>':'')+'</td><td>'+fuente+'</td></tr>';
+});
+if(!hus.length)h+='<tr><td colspan="5">'+nv()+' · no hay HUs registradas</td></tr>';
+h+='</tbody></table></div>';
+// Errores y cambios
+var errs=E.errores||[], cams=E.cambios||[];
+h+='<div class="grid g2"><div><h2>Errores</h2><div class="card">';
+if(errs.length){h+='<ul>';errs.forEach(function(x){h+='<li>'+(x.url?link(x.clave||"error",x.url):esc(x.clave||""))+' · '+esc(x.titulo)+' <span class="tag '+(x.estado==="Listo"?'t-ok':'t-warn')+'">'+esc(x.estado)+'</span></li>'});h+='</ul>'}else h+='<span class="sub">Ninguno registrado.</span>';
+h+='</div></div><div><h2>Pedidos de cambio</h2><div class="card">';
+if(cams.length){h+='<ul>';cams.forEach(function(x){h+='<li><b>'+esc(x.id)+'</b> · '+esc(x.titulo)+' → <i>'+esc(x.decision||"sin decidir")+'</i> '+(x.url?link("documento",x.url):nv())+'</li>'});h+='</ul>'}else h+='<span class="sub">Ninguno registrado.</span>';
+h+='</div></div></div>';
+// Funciona hoy
+h+='<h2>Qué funciona hoy</h2><div class="card">';
+var fh=E.funcionaHoy||[];
+if(fh.length){h+='<ul>';fh.forEach(function(x){h+='<li>'+esc(x.texto)+' · '+(x.evidencia?link("evidencia",x.evidencia):nv())+'</li>'});h+='</ul>'}else h+=nv();
+h+='</div>';
+// Rúbrica
+h+='<h2>Lo que verá el jurado</h2><div class="grid g2">';
+(E.rubrica||[]).forEach(function(c){
+ var ev=c.evidencia||[];
+ var sinEv=!ev.some(function(e){return e.url});
+ h+='<div class="card rub"><div class="row"><h3>'+esc(c.criterio)+'</h3><span class="tag '+(c.autoevaluacion==null?'t-idle':'t-info')+'">'+(c.autoevaluacion==null?'autoevaluación: por completar':'autoevaluación: '+esc(c.autoevaluacion)+'/5')+'</span>'+(c.autoevaluacion>=4&&sinEv?'<span class="tag t-warn">nota sin evidencia</span>':'')+'</div>';
+ if(ev.length){h+='<ul>';ev.forEach(function(e){h+='<li>'+esc(e.texto)+' · '+(e.url?link("abrir",e.url):nv())+'</li>'});h+='</ul>'}else h+='<div>'+nv()+' · sin evidencia enlazada</div>';
+ h+='</div>';
+});
+h+='</div>';
+// Huecos y fuera
+var hu=E.huecos||[], fu=E.dejoFuera||[];
+h+='<div class="grid g2"><div><h2>Huecos más caros</h2><div class="card">';
+if(hu.length){h+='<table><thead><tr><th>Hueco</th><th>Dueño</th><th>Fecha</th></tr></thead><tbody>';hu.forEach(function(x){h+='<tr><td>'+esc(x.texto)+(x.criterio?' <span class="tag t-idle">'+esc(x.criterio)+'</span>':'')+'</td><td>'+esc(x.dueno||"sin dueño")+'</td><td>'+esc(x.fecha||"sin fecha")+'</td></tr>'});h+='</tbody></table>'}else h+='<span class="sub">Por completar.</span>';
+h+='</div></div><div><h2>Lo que dejamos fuera del 10-dic</h2><div class="card">';
+if(fu.length){h+='<ul>';fu.forEach(function(x){h+='<li>'+esc(x)+'</li>'});h+='</ul>'}else h+='<span class="sub">Por completar.</span>';
+h+='</div></div></div>';
+// Equipo
+var eq=(E.proyecto&&E.proyecto.equipo)||[];
+h+='<h2>Quién presenta el 10 de diciembre</h2><div class="card">';
+if(eq.length){eq.forEach(function(p){h+='<span class="tag '+(p.presenta?'t-ok':'t-idle')+'" style="margin-right:6px">'+esc(p.nombre)+(p.presenta?' · presenta':' · no presenta')+'</span>'})}else h+='<span class="sub">Por completar.</span>';
+h+='</div>';
+h+='<p class="foot">Regla de este tablero: todo número se calcula desde los datos y todo dato lleva su fuente. Lo que no tiene fuente dice NO VERIFICADO. Los datos viven en estado.js; este archivo no se edita a mano.</p>';
+app.innerHTML=h;
+})();
+</script>
+</body>
+</html>
