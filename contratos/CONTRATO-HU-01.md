@@ -1,8 +1,8 @@
 # CONTRATO — HU-01 Actualizar precios diariamente mediante scraping
 
 **Tipo:** Feature
-**Versión:** v5
-**Estado:** Aprobado (2026-11-18, humano)
+**Versión:** v6
+**Estado:** Aprobado (2026-11-24, humano)
 **Origen:** [`hus/HU-01-actualizar-precios-scraping.md`](../hus/HU-01-actualizar-precios-scraping.md)
 (PRD v1.2, CAMBIO-01) · Jira [KAN-1](https://grupo4aifirst.atlassian.net/browse/KAN-1)
 
@@ -76,8 +76,19 @@ GET <url del comercio>/api/catalog_system/pub/products/search?ft=<término>&_fro
 
 - `<término>` va codificado con `encodeURIComponent` (por ejemplo `az%C3%BAcar`).
 - Las páginas son de 50 resultados (`_from` y `_to` inclusivos): `0–49`, `50–99`, …
+- **Tope por término (v6, decisión 30):** se leen como máximo `maxResultadosPorBusqueda`
+  resultados de cada término en cada comercio. El tope cuenta **posiciones de resultado** que
+  devuelve la web, no filas guardadas: los no disponibles (B9) o mal formados (B11) dentro del tope
+  no se guardan, y no se piden más resultados para reemplazarlos.
 - El scraper deja de pedir páginas de un término cuando una página trae **menos de 50** productos
-  o cuando `_from` superaría **2500** (tope de VTEX).
+  o cuando ya pidió las posiciones `0` a `maxResultadosPorBusqueda − 1`. Nunca pide una página con
+  `_from` ≥ `maxResultadosPorBusqueda`.
+- Si `maxResultadosPorBusqueda` no es múltiplo de 50, la última página se pide completa (50) y se
+  usan solo las posiciones hasta el tope. Ejemplo con 120: se piden `0–49`, `50–99` y `100–149`, y
+  de la tercera solo se usan las posiciones `100–119`.
+- Motivo (verificación manual del DEV con las webs reales, 2026-11-24, autorizada por el humano):
+  Plaza Vea responde `500` siempre que se pide `_from=1000` o más, y "leche" tiene 1596
+  resultados allí. Con el tope anterior (2500), Plaza Vea fallaría todos los días.
 - Los estados `200` y `206` son éxito. Cualquier otro comportamiento de la web falsa lo decide el
   TESTER, siempre que sea compatible con esto.
 
@@ -89,9 +100,14 @@ GET <url del comercio>/api/catalog_system/pub/products/search?ft=<término>&_fro
     { "slug": "wong", "nombre": "Wong", "activo": true, "url": "https://www.wong.pe",
       "tipo": "json", "limitePeticionesPorSegundo": 2 }
   ],
-  "busquedas": ["leche", "arroz", "azúcar", "atún", "aceite"]
+  "busquedas": ["leche", "arroz", "azúcar", "atún", "aceite"],
+  "maxResultadosPorBusqueda": 100
 }
 ```
+
+- `maxResultadosPorBusqueda` (v6, decisión 30) es obligatorio, vale para todos los comercios y
+  debe ser un entero mayor que 0. Si falta, está vacío o no es un entero positivo, es un error de
+  configuración (caso E2). Valor inicial: `100`.
 
 - `url` es la URL base de la web (sin `/` final); el scraper le agrega la ruta del endpoint.
 - Un comercio con `tipo` distinto de `"json"` falla (va a la DLQ como cualquier fallo).
@@ -162,7 +178,9 @@ Valores iniciales: `leche`, `arroz`, `azúcar`, `atún`, `aceite` (decisión 19)
 | F1 Solo los términos configurados | Una web con productos de leche y de otros rubros | Solo se piden búsquedas (`ft=`) de los términos configurados | Decisión 19 |
 | F2 Sin filtro de categoría | La búsqueda de `leche` devuelve "Chocolate con Leche" (`/Abarrotes/Chocolatería/…`) y "Leche Gloria" (`/Lácteos/Leches/`) | Se guardan los dos (salvo los no disponibles, B9) | Decisión 20 |
 | F3 Producto en dos búsquedas | El mismo `link` aparece en dos términos | Una sola fila | B3; único (`comercio_id`, `url`) |
-| F4 Paginación | Una búsqueda con más resultados de los que caben en una página | Se guardan todos los resultados, no solo la primera página | HU-01 crit. 2 |
+| F4 Paginación | `maxResultadosPorBusqueda` = 100 y un término con 80 resultados | Se piden `_from=0` (50 resultados) y `_from=50` (30, menos de 50: se para); se usan las 80 posiciones | HU-01 crit. 2; decisión 30 |
+| F6 Tope por término | `maxResultadosPorBusqueda` = 100 y un término con 1596 resultados | Exactamente 2 peticiones de ese término (`_from=0` y `_from=50`) y como máximo 100 filas de ese término; nunca se pide `_from=100` | Decisión 30 |
+| F7 Tope no múltiplo de 50 | `maxResultadosPorBusqueda` = 120 y un término con 1596 resultados | 3 peticiones (`_from=0`, `50`, `100`); de la tercera solo se usan las posiciones 100–119 (como máximo 120 filas en total) | Decisión 30 |
 | F5 Cero productos en total | Ninguna búsqueda del comercio devuelve productos disponibles | Fallo del comercio (decisión 8) | Decisión 8 |
 
 ### C. Fallos, reintentos y DLQ
@@ -204,7 +222,7 @@ el límite de peticiones por segundo (D2).
 | Caso | Entrada | Salida esperada | Origen |
 |---|---|---|---|
 | E1 Sin valores fijos | Revisión del código de `scraper/` y `shared/` | Ninguna URL de comercio, horario, número de intentos, límite ni credencial escrita en el código; todos llegan por configuración | HU-01 crit. 8; TDD viñeta 8 |
-| E2 Falta configuración | Falta `SCRAPING_MAX_INTENTOS` o el archivo de comercios. **Una variable vacía cuenta como que falta**, y una `COMERCIOS_CONFIG_PATH` que apunta a un archivo inexistente también | El comando termina con código ≠ 0 y un log `error` que nombra lo que falta, sin pedir ninguna web | HU-01 crit. 8; patrón de `shared/src/config.js`; decisión 28 |
+| E2 Falta configuración | Falta `SCRAPING_MAX_INTENTOS` o el archivo de comercios. **Una variable vacía cuenta como que falta**, y una `COMERCIOS_CONFIG_PATH` que apunta a un archivo inexistente también. Desde v6, también falta o está vacío `maxResultadosPorBusqueda`, o no es un entero positivo | El comando termina con código ≠ 0 y un log `error` que nombra lo que falta, sin pedir ninguna web | HU-01 crit. 8; patrón de `shared/src/config.js`; decisión 28 |
 | E3 Logs | Cualquier ejecución | Cada línea de log es JSON con `level`, `message`, `ejecucionId` (igual en toda la ejecución) y, si se refiere a un comercio, `comercio` (slug) | ADR-0011; TDD "Disponibilidad" viñeta 3 |
 
 ## Nombres que no se negocian
@@ -217,6 +235,7 @@ el límite de peticiones por segundo (D2).
 | Slugs / nombres | `wong` / `Wong`, `plaza-vea` / `Plaza Vea`, `metro` / `Metro` |
 | Variable | `COMERCIOS_CONFIG_PATH`: ruta a un JSON con el formato exacto de la sección "Formato del JSON de `COMERCIOS_CONFIG_PATH`" (v5) |
 | Parámetros de búsqueda | `ft`, `_from`, `_to` (sección "Paginación de la búsqueda") |
+| Campo de configuración | `maxResultadosPorBusqueda` (raíz del JSON de comercios; inicial 100; v6) |
 | Variable | `SCRAPING_MAX_INTENTOS` (inicial 3) |
 | Variable | `SCRAPING_TIMEOUT_MS` (tiempo máximo por petición) |
 | Variable | `SCRAPING_USER_AGENT` |
@@ -283,6 +302,7 @@ el límite de peticiones por segundo (D2).
 | 27 | Un producto mal formado se omite con log `warn`; el comercio no falla | Pregunta del DEV (4) | Aprobada (humano, 2026-11-18) |
 | 28 | Una variable de configuración vacía cuenta como que falta | Pregunta del TESTER (2) | Aprobada (humano, 2026-11-18) |
 | 29 | Base de pruebas aparte `comparador_test`, creada y migrada por el humano | Pregunta del TESTER (5) | Aprobada (humano, 2026-11-18) |
+| 30 | Tope configurable `maxResultadosPorBusqueda` (inicial 100) por término y comercio, para los tres comercios; obligatorio (si falta, caso E2); si no es múltiplo de 50, se corta en el número exacto. Sustituye la parada en `_from` 2500 | Pedido del DEV: Plaza Vea responde 500 desde `_from=1000` | Aprobada (humano, 2026-11-24) |
 
 ## Fuera del contrato (decide el DEV)
 
@@ -305,3 +325,4 @@ Ninguna. Las nuevas dudas del TESTER o del DEV se escalan al humano y generan un
 | v3 | 2026-11-17 | Respuestas a las preguntas 8–12; alcance de 5 productos (sección F); casos B9 y B10; decisiones 19–23; decisión 20 propuesta | Decisión del humano sobre el alcance; ruido y 429 observados | Humano (salvo la decisión 20) |
 | v4 | 2026-11-17 | Decisión 20: sin filtro de categoría (se guarda todo lo que devuelve cada búsqueda); caso F2 reescrito; `busquedas` es una lista de términos | El humano rechazó el filtro propuesto | Humano |
 | v5 | 2026-11-18 | Qué es un intento (C1, C2); casos D1b–D1d sobre `robots.txt`; caso B11 (producto mal formado); E2 con variable vacía; secciones de paginación y formato del JSON de configuración; base `comparador_test`; decisiones 24–29 | Preguntas del DEV (1–5) y del TESTER (1–5) durante la construcción | Humano |
+| v6 | 2026-11-24 | Tope `maxResultadosPorBusqueda` (100) por término y comercio en lugar de la parada en 2500; caso F4 reescrito; casos F6 y F7; campo nuevo en el JSON de configuración; decisión 30 | Pedido del DEV: Plaza Vea responde 500 desde `_from=1000` (verificación manual del 2026-11-24) | Humano |
