@@ -1,16 +1,17 @@
 # SPRINT 0 — Comparador de precios entre comercios/supermercados
 
-**Estado:** Aprobado (2026-10-27, humano)
-**Fuentes:** `TECH-DESIGN.md`, `adrs/`
+**Estado:** Cerrado (2026-11-17, humano) — aprobado el 2026-10-27
+**Fuentes:** `TECH-DESIGN.md`, `adrs/` (0001–0012), `CLAUDE.md`
 
-> **Estado del ciclo al cierre del 2026-10-27 (LEAD):**
-> - TESTER (`[TESTER]` 3c32091): primera entrega para DoD 5–8, 11, 13, 14 (NO EJECUTADAS). Pendiente:
->   nueva entrega con las aclaraciones 11–17 y 22 y los criterios 18–20.
-> - DEV: esqueleto y maquetado de `/buscar` en curso, sin entrega. Pendiente: `db/setup-local.sql`
->   lo ejecuta el humano (aclaración 18) y luego `ENTREGA DEV`.
-> - Veredicto: no ejecutado (faltan las dos entregas finales). Commits del TESTER sin verificar rutas.
-> - Para retomar: abrir sesiones `/init-agent LEAD`, `/init-agent TESTER` y `/init-agent DEV` en esta
->   carpeta, rama `chore/sprint0`; los encargos están en `encargos/`. (0001–0012), `CLAUDE.md`
+> **Cierre del Sprint 0 (2026-11-17, LEAD):**
+> - Veredicto 🟢 en la vuelta 2: los 19 criterios vigentes en verde (el 17 se eliminó por la
+>   aclaración 26) — `informes/VEREDICTO-SPRINT0.md`.
+> - Entregas finales: TESTER `aa102fd` (16/16 unitarias y web, 17/17 integración); DEV `9f0aa9e`
+>   (build con Node 22 corregido en `35a0e89`).
+> - PR #1 fusionado en `main` por el humano (`5a65842`).
+> - Queda NO VERIFICADO la Lambda desplegada en AWS (no hay despliegue en este sprint). Riesgo
+>   aceptado: 2 vulnerabilidades altas de `npm audit` en `glob`, solo en desarrollo.
+> - Siguiente: HU-01 (KAN-1).
 
 Objetivo: un esqueleto que funcione de punta a punta en local, sin lógica de negocio:
 **web (React) → API (`GET /v1/health`) → PostgreSQL**, con pruebas, lint y build funcionando.
