@@ -57,9 +57,45 @@ function getApiConfig() {
   };
 }
 
+// HU-01: valores comunes al scraper en local y en AWS (decisión 10 del contrato).
+function getScrapingConfig() {
+  return {
+    maxIntentos: readPositiveInteger('SCRAPING_MAX_INTENTOS'),
+    timeoutMs: readPositiveInteger('SCRAPING_TIMEOUT_MS'),
+    userAgent: readRequired('SCRAPING_USER_AGENT'),
+  };
+}
+
+// HU-01: solo `npm run scrape:local` (archivo de comercios y DLQ en JSON Lines).
+function getScrapingLocalConfig() {
+  return {
+    comerciosConfigPath: readRequired('COMERCIOS_CONFIG_PATH'),
+    dlqLocalPath: readRequired('SCRAPING_DLQ_LOCAL_PATH'),
+  };
+}
+
+// HU-01 en AWS: nombre del parámetro de Parameter Store (ADR-0010) y cola del pipeline.
+function getOrquestadorAwsConfig() {
+  return {
+    comerciosParameterName: readRequired('COMERCIOS_PARAMETER_NAME'),
+    queueUrl: readRequired('SCRAPING_QUEUE_URL'),
+  };
+}
+
+// HU-01 en AWS: DLQ donde el scraper publica al agotar los intentos (decisión 15).
+function getScraperAwsConfig() {
+  return {
+    dlqUrl: readRequired('SCRAPING_DLQ_URL'),
+  };
+}
+
 module.exports = {
   ConfigError,
   getDbConfig,
   getCorsConfig,
   getApiConfig,
+  getScrapingConfig,
+  getScrapingLocalConfig,
+  getOrquestadorAwsConfig,
+  getScraperAwsConfig,
 };
