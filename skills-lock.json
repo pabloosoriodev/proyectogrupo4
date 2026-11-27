@@ -7,6 +7,13 @@
       "skillPath": "skills/crear-guardrail/SKILL.md",
       "computedHash": ""
     },
+    "deploy-pass": {
+      "source": "adminoryslabs/Armory",
+      "commit": "59ae527a898469fe7d683f074f38e353419c60a7",
+      "sourceType": "github",
+      "skillPath": "skills/deploy-pass/SKILL.md",
+      "computedHash": "01dba43133a08c11afb2c4779f8bdf456560abadfaeb8ce66713e20c210e601f"
+    },
     "escribir-contrato": {
       "source": "adminoryslabs/Armory",
       "commit": "1c8815531abbc5481d65dbe2c2b49432d09adf9a",
