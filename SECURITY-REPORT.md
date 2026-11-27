@@ -319,7 +319,16 @@ riesgo de `glob` ya se aceptó en el Sprint 0.
 Ninguna bloquea el veredicto de HU-01, porque no hay despliegue. SEC-01 y SEC-02 sí bloquean el
 primer despliegue.
 
-## Gobernanza / Decisión requerida
+## Decisiones del humano (2026-11-24)
+
+| Finding | Decisión | Consecuencia |
+|---|---|---|
+| SEC-01 | No se corrige por ahora | Queda como **requisito previo al primer despliegue**: no se despliega sin resolverlo |
+| SEC-02 | Sin decisión explícita | Igual que SEC-01: bloquea el primer despliegue |
+| SEC-03 y SEC-04 | No se corrigen | Riesgo aceptado; no se abre una nueva versión del contrato |
+| SEC-05 | Se corrige | Encargo al DEV en la rama `chore/deps-seguridad` (`encargos/ENCARGO-DEV-DEPS-SEGURIDAD.md`) |
+
+## Gobernanza / Decisión requerida (texto original del pase)
 
 - **SEC-01: alcance de la decisión 17 (humano).** Se aprobó usar `comparador_app` "hasta el
   despliegue". Falta decidir si la plantilla actual (contraseña en variable de entorno y un solo

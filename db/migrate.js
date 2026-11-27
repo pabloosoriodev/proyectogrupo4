@@ -1,7 +1,6 @@
 // npm run db:migrate — aplica las migraciones pendientes de db/migrations con node-pg-migrate.
 // Regla del proyecto: toda migración debe ser no bloqueante (p. ej. CREATE INDEX CONCURRENTLY).
 const path = require('node:path');
-const { default: runMigrations } = require('node-pg-migrate');
 const { buildConnectionConfig, getDbConfig, logger } = require('@proyectogrupo4/shared');
 
 const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
@@ -16,6 +15,9 @@ const migrationLogger = {
 
 async function main() {
   try {
+    // node-pg-migrate 9 es solo ESM (SEC-05): se carga con import() dinámico para que este script
+    // siga siendo CommonJS (aclaración 13 del Sprint 0).
+    const { runner: runMigrations } = await import('node-pg-migrate');
     const applied = await runMigrations({
       databaseUrl: buildConnectionConfig(getDbConfig()),
       dir: MIGRATIONS_DIR,
