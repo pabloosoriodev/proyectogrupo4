@@ -90,6 +90,27 @@ ni un árbol con cambios sin commit.
   - throttling en la HTTP API (`DefaultRouteSettings`);
   - `ReservedConcurrentExecutions` en la Lambda de salud, con valores parametrizados y coherentes
     con `max_connections` de RDS.
+  **Valores decididos por el LEAD (delegado por el humano el 2026-11-26):**
+
+  | Parámetro | Valor inicial | Por qué |
+  |---|---|---|
+  | `ApiThrottlingRateLimit` (HTTP API, peticiones/s sostenidas) | 20 | Un MVP sin usuarios registrados está muy por debajo; corta los aluviones antes de que lleguen a Lambda |
+  | `ApiThrottlingBurstLimit` (HTTP API, ráfaga) | 40 | El doble de la tasa, para picos legítimos breves (varias pestañas o recargas) |
+  | `HealthReservedConcurrency` (Lambda de salud) | 10 | 1 conexión por instancia → máximo 10 conexiones de la API |
+  | `ScraperReservedConcurrency` (Lambda scraper) | 3 | Un mensaje por comercio (Wong, Plaza Vea, Metro) → máximo 3 conexiones |
+  | `OrquestadorReservedConcurrency` | 1 | Una ejecución diaria → 1 conexión |
+
+  - **Total de conexiones de la aplicación: 14.** Quedan unas 60 de las ~80 de `db.t4g.micro` para
+    migraciones, administración y las APIs futuras de HU-03 y HU-04 (NO VERIFICADO:
+    `max_connections` real de la instancia).
+  - **La salud no se cachea:** `openapi.yaml` y el criterio 5 del Sprint 0 dicen que ejecuta
+    `SELECT 1`. El throttling basta para proteger la base.
+  - Todos son **parámetros de la plantilla**, no valores fijos en el código (`CLAUDE.md`).
+  - **Riesgo de cuenta nueva:** AWS exige dejar al menos 100 ejecuciones concurrentes sin reservar.
+    Las cuentas nuevas a veces arrancan con una cuota total de 10, y entonces **no se puede reservar
+    concurrencia**. Por eso cada `*ReservedConcurrency` admite `0` = sin reserva (condición en la
+    plantilla). En ese caso la propia cuota de 10 limita las conexiones y el throttling de la API
+    sigue activo. La cuota real se comprueba al crear la cuenta (NO VERIFICADO).
 - **Lectura de secretos (SEC-01):** permisos `ssm:GetParameter` por función sobre su propio
   parámetro, sin `DB_PASSWORD` en `Environment`.
 - **Presupuesto:** una alerta de AWS Budgets (por ejemplo 5 USD/mes) en la cuenta, creada a mano en
