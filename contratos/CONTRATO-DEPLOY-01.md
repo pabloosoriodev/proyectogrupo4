@@ -1,8 +1,8 @@
 # CONTRATO — DEPLOY-01 Preparación del despliegue
 
 **Tipo:** Feature
-**Versión:** v2
-**Estado:** Aprobado (2026-11-26, humano). Se construye en **dos entregas** (ver "Entregas").
+**Versión:** v3
+**Estado:** Aprobado (2026-11-26, humano; v3 aprobada el mismo día). Se construye en **dos entregas** (ver "Entregas").
 **Origen:** [`DEPLOY-PLAN.md`](../DEPLOY-PLAN.md) (aprobado por el humano el 2026-11-26, con los
 valores de SEC-02 decididos por el LEAD) y [`SECURITY-REPORT.md`](../SECURITY-REPORT.md) SEC-01 y
 SEC-02, que bloquean el primer despliegue.
@@ -16,7 +16,7 @@ toca AWS: no hay cuenta, y cada acción real se autoriza aparte según `DEPLOY-P
 
 | Entrega | Secciones | Qué cierra |
 |---|---|---|
-| **1 — Seguridad y base** | **A, B, C, E, F** | SEC-01 y SEC-02 en el código y la plantilla actuales; `samconfig.toml` con los parámetros que existen hoy; Node 22 obligatorio |
+| **1 — Seguridad y base** | **A, B, C (incluidos C5 y C6), E, F** | SEC-01 y SEC-02 en el código y la plantilla actuales; `samconfig.toml` con los parámetros que existen hoy; Node 22 obligatorio |
 | **2 — Infraestructura y scripts** | **D, G, H** | RDS, S3 y CloudFront en la plantilla (incluido D4, que reemplaza `DbHost`/`DbPort` por `!GetAtt`); `samconfig.toml` ampliado con los parámetros nuevos; `deploy:prod` y `deploy:web` |
 
 - Cada entrega tiene su propio veredicto. La entrega 2 empieza cuando la 1 está en verde.
@@ -78,7 +78,7 @@ archivo):
 | Caso | Entrada | Salida esperada | Origen |
 |---|---|---|---|
 | B1 Sin contraseñas en la plantilla | Revisión de `infra/template.yaml` | Ninguna función tiene `DB_PASSWORD`, `DB_API_PASSWORD` ni `DB_SCRAPER_PASSWORD` en `Environment`; no existe el parámetro `DbPassword` | SEC-01 |
-| B2 Una credencial por función | Revisión de la plantilla | Cada función que usa la base recibe solo el **nombre** de su parámetro en `DB_CREDENTIALS_PARAMETER`: `/comparador/prod/db/api` (salud), `/comparador/prod/db/scraper` (scraper y orquestador) | Decisión 4 |
+| B2 Una credencial por función | Revisión de la plantilla | Cada función que usa la base recibe solo el **nombre** de su parámetro en `DB_CREDENTIALS_PARAMETER`: `/comparador/prod/db/api` (salud), `/comparador/prod/db/scraper` (scraper y orquestador). **Escrito literal en la plantilla, sin `!Sub` ni `Entorno`** (v3) | Decisiones 4 y 14 |
 | B3 Permiso mínimo | Revisión de la plantilla | Cada función tiene `ssm:GetParameter` **solo** sobre su propio parámetro | SEC-01; ADR-0010 |
 | B4 Formato del secreto | Documentación en `.env.example` | El `SecureString` es un JSON `{ "user": "...", "password": "..." }` | Decisión 4 |
 | B5 Local no cambia | Sin `DB_CREDENTIALS_PARAMETER` | Se usan las variables de A4; nunca se llama a AWS en local | Decisión 4 |
@@ -90,6 +90,8 @@ archivo):
 | C1 Throttling | Revisión de la plantilla | `HttpApi` con `DefaultRouteSettings.ThrottlingRateLimit` = `!Ref ApiThrottlingRateLimit` (por defecto 20) y `ThrottlingBurstLimit` = `!Ref ApiThrottlingBurstLimit` (por defecto 40) | DEPLOY-PLAN (SEC-02) |
 | C2 Concurrencia reservada | Revisión de la plantilla | Parámetros `HealthReservedConcurrency` (10), `ScraperReservedConcurrency` (3) y `OrquestadorReservedConcurrency` (1) aplicados a `ReservedConcurrentExecutions` de cada función | DEPLOY-PLAN (SEC-02) |
 | C3 Cero = sin reserva | Un `*ReservedConcurrency` = `0` | Esa función **no** tiene `ReservedConcurrentExecutions` (condición de CloudFormation con `AWS::NoValue`) | DEPLOY-PLAN (cuentas nuevas con cuota de 10) |
+| C5 Límite del evento SQS (v3) | Revisión de la plantilla | El evento SQS del scraper tiene `ScalingConfig.MaximumConcurrency` = `!Ref ScraperReservedConcurrency`, para que SQS no entregue más mensajes de los que la Lambda puede procesar. Si el valor es `0`, se omiten `MaximumConcurrency` y `ReservedConcurrentExecutions` (`AWS::NoValue`) | Decisión 15 |
+| C6 Valores válidos del scraper (v3) | `ScraperReservedConcurrency` = `1` | `sam validate` o el despliegue lo rechaza: solo se admite `0` o un entero ≥ 2 (mínimo de AWS para `MaximumConcurrency`), por ejemplo con `AllowedPattern` o `AllowedValues` en el parámetro | Decisión 15 |
 | C4 Sin caché | Revisión de la plantilla y del handler | La salud sigue ejecutando `SELECT 1` en cada petición | `openapi.yaml`; DoD 5 |
 
 ### D. RDS, S3 y CloudFront en la plantilla (ADR-0002, 0003, 0008)
@@ -200,6 +202,8 @@ Cada bloqueo termina con **código 1** y una línea en la salida de error que em
 | 11 | La web se sube con un comando aparte (`deploy:web`) | El primer despliegue va en dos pasos (la web necesita `HttpApiUrl`) | Aprobada (humano, 2026-11-26) |
 | 12 | Dos entregas: 1 = A, B, C, E, F; 2 = D, G, H | Unidad grande; cada veredicto más manejable | Aprobada (humano, 2026-11-26) |
 | 13 | Tras la entrega 1, el humano vuelve a ejecutar `setup-local.sql` como `postgres` en `comparador_dev` y `comparador_test` | Solo el humano conoce la contraseña de `postgres` | Aprobada (humano, 2026-11-26) |
+| 14 | Los nombres de los secretos de base (`/comparador/prod/db/api` y `/comparador/prod/db/scraper`) se escriben literales en la plantilla | Pregunta 1 del DEV: ¿literal o `!Sub` con `Entorno`? | Aprobada (humano, 2026-11-26) |
+| 15 | `ScalingConfig.MaximumConcurrency` del evento SQS = `ScraperReservedConcurrency`; ese parámetro solo admite `0` o ≥ 2 | Pregunta 2 del DEV: SQS lanza al menos 5 lectores y, con la Lambda saturada, los mensajes podrían ir a la DLQ sin procesarse | Aprobada (humano, 2026-11-26) |
 
 ## Fuera del contrato (decide el DEV)
 
@@ -217,3 +221,4 @@ Ninguna. Las dudas nuevas del TESTER o del DEV se escalan al humano y generan un
 |---|---|---|---|---|
 | v1 | 2026-11-26 | Versión inicial | `DEPLOY-PLAN.md` aprobado; SEC-01 y SEC-02 bloquean el primer despliegue | — |
 | v2 | 2026-11-26 | Dos entregas (sección "Entregas"); decisiones 1–13 aprobadas | Respuestas del humano a las preguntas 1–3 de v1 | Humano |
+| v3 | 2026-11-26 | B2: nombres literales; casos C5 y C6 (límite del evento SQS y valores válidos); decisiones 14 y 15 | Preguntas 1 y 2 del DEV durante la entrega 1 | Humano |
